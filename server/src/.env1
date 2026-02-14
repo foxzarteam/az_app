@@ -1,0 +1,11 @@
+# Copy to .env and fill values.
+# Supabase: project Settings > API
+SUPABASE_URL=https://exdhkfrzslhjghvsvfov.supabase.co
+SUPABASE_SERVICE_KEY=sb_publishable_JtgNQg_d64uAWdf-fvzWVQ_IraOU6kH
+
+# Optional: Fast2SMS for OTP
+FAST2SMS_API_KEY=
+FAST2SMS_BASE_URL=https://www.fast2sms.com/dev/bulkV2
+
+PORT=3000
+API_PREFIX=api

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for Fast2SMS API -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">fast2sms.com</domain>
+        <domain includeSubdomains="true">www.fast2sms.com</domain>
+    </domain-config>
+    
+    <!-- Allow all HTTPS traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

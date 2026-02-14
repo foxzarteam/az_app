@@ -1,0 +1,175 @@
+# ============================================
+# Root .gitignore for Apni Zaroorat Project
+# ============================================
+
+# ============================================
+# Server (NestJS) - Ignore
+# ============================================
+server/node_modules/
+server/dist/
+server/.env
+server/*.log
+server/.DS_Store
+server/npm-debug.log*
+server/yarn-debug.log*
+server/yarn-error.log*
+
+# ============================================
+# Flutter App - Ignore
+# ============================================
+bankers/.dart_tool/
+bankers/.flutter-plugins
+bankers/.flutter-plugins-dependencies
+bankers/.pub/
+bankers/.pub-cache/
+bankers/build/
+bankers/coverage/
+bankers/*.iml
+bankers/.idea/
+bankers/.vscode/
+bankers/.metadata
+bankers/.packages
+bankers/.flutter-plugins-dependencies
+bankers/.last_build_id
+
+# ============================================
+# Android Build Files
+# ============================================
+bankers/android/.gradle/
+bankers/android/build/
+bankers/android/local.properties
+bankers/android/.idea/
+bankers/android/app/debug/
+bankers/android/app/profile/
+bankers/android/app/release/
+bankers/android/.cxx/
+bankers/android/.externalNativeBuild/
+bankers/android/.settings/
+bankers/android/key.properties
+*.jks
+*.keystore
+
+# ============================================
+# iOS Build Files
+# ============================================
+bankers/ios/Pods/
+bankers/ios/.symlinks/
+bankers/ios/Flutter/Flutter.framework
+bankers/ios/Flutter/Flutter.podspec
+bankers/ios/Flutter/Generated.xcconfig
+bankers/ios/Flutter/ephemeral/
+bankers/ios/Flutter/app.flx
+bankers/ios/Flutter/app.zip
+bankers/ios/Flutter/flutter_assets/
+bankers/ios/Flutter/flutter_export_environment.sh
+bankers/ios/ServiceDefinitions.json
+bankers/ios/Runner/GeneratedPluginRegistrant.*
+bankers/ios/**/xcuserdata/
+bankers/ios/**/DerivedData/
+
+# ============================================
+# macOS Build Files
+# ============================================
+bankers/macos/Flutter/ephemeral/
+bankers/macos/Pods/
+bankers/macos/**/xcuserdata/
+
+# ============================================
+# Windows Build Files
+# ============================================
+bankers/windows/flutter/ephemeral/
+bankers/windows/*.suo
+bankers/windows/*.user
+bankers/windows/*.userosscache
+bankers/windows/*.sln.docstates
+bankers/windows/x64/
+bankers/windows/x86/
+bankers/windows/*.[Cc]ache
+
+# ============================================
+# Linux Build Files
+# ============================================
+bankers/linux/flutter/ephemeral/
+
+# ============================================
+# Web Build Files
+# ============================================
+bankers/web/*.dart.js
+bankers/web/*.dart.js.map
+bankers/web/*.js_
+bankers/web/*.js.deps
+bankers/web/*.js.map
+
+# ============================================
+# IDE & Editor Files
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# Logs & Temp Files
+# ============================================
+*.log
+*.tmp
+*.temp
+*.cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ============================================
+# Environment & Config Files (Sensitive)
+# ============================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.cert
+
+# ============================================
+# Package Manager Files
+# ============================================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# Test Coverage
+# ============================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ============================================
+# Misc
+# ============================================
+*.class
+*.pyc
+*.swp
+.history/
+.svn/
+migrate_working_dir/
