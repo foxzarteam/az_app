@@ -26,7 +26,9 @@ export class OtpController {
 
   @Get('dev')
   dev(@Res() res: Response) {
-    if (this.config.get<string>('NODE_ENV') === 'production') {
+    const isProduction = this.config.get<string>('NODE_ENV') === 'production';
+    const allowOtpDev = this.config.get<string>('ALLOW_OTP_DEV') === 'true';
+    if (isProduction && !allowOtpDev) {
       return res.status(404).json({ error: 'Not found' });
     }
     const entries = this.otpService.getDevOtps();
