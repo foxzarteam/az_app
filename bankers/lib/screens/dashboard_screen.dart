@@ -1,4 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../config/api_config.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../utils/constants.dart';
@@ -37,6 +41,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<String> _bannerUrls = [];
   bool _isLoadingBanners = true;
+  String? _bannerError;
 
   @override
   void initState() {
@@ -47,6 +52,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadBanners() async {
     try {
       final bannersData = await ApiService.instance.getBanners(category: 'carousel');
+      // DEBUG: print DB se aane wale image path/URL
+      if (kDebugMode) {
+        for (var i = 0; i < bannersData.length; i++) {
+          final url = bannersData[i]['imageUrl'] as String? ?? '';
+          debugPrint('Banner[$i] imageUrl from DB: "$url"');
+        }
+        debugPrint('Total banners: ${bannersData.length}, URLs used: ${bannersData.map((b) => b['imageUrl'] as String? ?? '').where((u) => u.isNotEmpty).length}');
+      }
       if (mounted) {
         setState(() {
           _bannerUrls = bannersData
@@ -439,6 +452,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
             _buildSellAndEarnSection(AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.primaryBlueDark),
             const SizedBox(height: 24),
             _buildCarouselBanner(),
+            if (kDebugMode) ..._buildDebugBannerUrls(),
             const SizedBox(height: 24),
             _buildKYCBanner(AppTheme.primaryBlue, AppTheme.accentOrange),
           ],
@@ -459,23 +473,48 @@ class _DashboardBodyBuilder extends StatelessWidget {
     return _copyOfBuildKYCBanner(darkBlue, accentOrange);
   }
 
+  List<Widget> _buildDebugBannerUrls() {
+    return [
+      const SizedBox(height: 12),
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('DB se aaye image path (debug):', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 12)),
+            const SizedBox(height: 8),
+            if (bannerUrls.isEmpty)
+              Text('Koi URL nahi aaya (empty)', style: TextStyle(color: Colors.red.shade700, fontSize: 11))
+            else
+              ...bannerUrls.asMap().entries.map((e) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: SelectableText(
+                  '${e.key + 1}. ${e.value}',
+                  style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                ),
+              )),
+          ],
+        ),
+      ),
+    ];
+  }
+
   Widget _buildCarouselBanner() {
-    // Use dynamic banners from API if available, otherwise fallback to local images
+    // Only DB/API banners (image_url from banners table) – no local folder fallback
     if (bannerUrls.isNotEmpty) {
       return CarouselBanner(
         imageUrls: bannerUrls,
         height: 120,
         autoScrollDuration: const Duration(seconds: 4),
       );
-    } else if (!isLoadingBanners) {
-      // Fallback to local images if API has no banners
-      return CarouselBanner(
-        imagePaths: AppImages.carouselImages,
-        height: 120,
-        autoScrollDuration: const Duration(seconds: 4),
-      );
-    } else {
-      // Show loading placeholder
+    }
+    if (isLoadingBanners) {
       return Container(
         height: 120,
         width: double.infinity,
@@ -488,6 +527,21 @@ class _DashboardBodyBuilder extends StatelessWidget {
         ),
       );
     }
+    // No banners from DB – show empty placeholder
+    return Container(
+      height: 120,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Text(
+          'No banners',
+          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+        ),
+      ),
+    );
   }
 
 

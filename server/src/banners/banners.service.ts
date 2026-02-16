@@ -40,13 +40,16 @@ export class BannersService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('BannersService.getByCategory', error);
-      }
+      console.error('BannersService.getByCategory error', error.message);
       return [];
     }
 
-    return this.mapToResponseDto(data || []);
+    const rows = data || [];
+    if (process.env.NODE_ENV !== 'production' || rows.length === 0) {
+      console.log(`BannersService.getByCategory('${category}'): rows=${rows.length}, first image_url=${rows[0] ? (rows[0] as Record<string, unknown>).image_url : 'n/a'}`);
+    }
+
+    return this.mapToResponseDto(rows);
   }
 
   async getAll(): Promise<BannerResponseDto[]> {
@@ -65,10 +68,18 @@ export class BannersService {
     return this.mapToResponseDto(data || []);
   }
 
+  /** Pass through any non-empty http(s) URL from DB; only skip empty or clearly non-URL values */
+  private getImageUrl(url: unknown): string {
+    if (typeof url !== 'string' || !url.trim()) return '';
+    const u = url.trim();
+    if (u.startsWith('http://') || u.startsWith('https://')) return u;
+    return '';
+  }
+
   private mapToResponseDto(data: Record<string, unknown>[]): BannerResponseDto[] {
     return data.map((item) => ({
       id: item.id as string,
-      imageUrl: item.image_url as string,
+      imageUrl: this.getImageUrl(item.image_url),
       title: item.title as string | undefined,
       description: item.description as string | undefined,
       category: (item.category as string) || 'carousel',

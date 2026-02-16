@@ -20,10 +20,12 @@ async function createApp(): Promise<express.Express> {
   const prefix = config.get<string>('API_PREFIX', 'api');
 
   app.setGlobalPrefix(prefix);
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean);
+  const origin = allowedOrigins?.length ? allowedOrigins : '*';
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    origin,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
+    credentials: origin !== '*',
   });
   app.useGlobalPipes(
     new ValidationPipe({
