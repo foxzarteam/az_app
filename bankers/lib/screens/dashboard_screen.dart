@@ -420,6 +420,38 @@ class DashboardBody extends StatelessWidget {
   }
 }
 
+/// Wraps horizontal scroll with Scrollbar using a single ScrollController (fixes "no ScrollPosition attached").
+class _HorizontalScrollWithBar extends StatefulWidget {
+  const _HorizontalScrollWithBar({required this.child});
+  final Widget child;
+
+  @override
+  State<_HorizontalScrollWithBar> createState() => _HorizontalScrollWithBarState();
+}
+
+class _HorizontalScrollWithBarState extends State<_HorizontalScrollWithBar> {
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scrollbar(
+      controller: _controller,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: _controller,
+        scrollDirection: Axis.horizontal,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class _DashboardBodyBuilder extends StatelessWidget {
   final VoidCallback onShare;
   final List<String> bannerUrls;
@@ -616,20 +648,16 @@ class _DashboardBodyBuilder extends StatelessWidget {
         const SizedBox(height: 20),
         SizedBox(
           height: 132,
-          child: Scrollbar(
-            thumbVisibility: true,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(width: 118, child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onShare)),
-                  const SizedBox(width: 6),
-                  SizedBox(width: 118, child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2))),
-                  const SizedBox(width: 6),
-                  SizedBox(width: 118, child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2))),
-                ],
-              ),
+          child: _HorizontalScrollWithBar(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(width: 118, child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onShare)),
+                const SizedBox(width: 6),
+                SizedBox(width: 118, child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2))),
+                const SizedBox(width: 6),
+                SizedBox(width: 118, child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2))),
+              ],
             ),
           ),
         ),
