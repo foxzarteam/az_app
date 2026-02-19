@@ -32,12 +32,32 @@ export class BannersService {
   }
 
   async getByCategory(category: string): Promise<BannerResponseDto[]> {
-    const { data, error } = await this.banners
+    // Normalize category to lowercase for case-insensitive matching
+    const normalizedCategory = category.toLowerCase().trim();
+    
+    // First try exact match (most common case)
+    let { data, error } = await this.banners
       .select()
       .eq('is_active', true)
-      .eq('category', category)
+      .eq('category', normalizedCategory)
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false });
+
+    // If no results, try case-insensitive match by fetching all active and filtering
+    if (!error && (!data || data.length === 0)) {
+      const { data: allData, error: allError } = await this.banners
+        .select()
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+      
+      if (!allError && allData) {
+        data = allData.filter((row) => 
+          (row.category as string)?.toLowerCase() === normalizedCategory
+        );
+        error = null;
+      }
+    }
 
     if (error) {
       console.error('BannersService.getByCategory error', error.message);
@@ -46,7 +66,7 @@ export class BannersService {
 
     const rows = data || [];
     if (process.env.NODE_ENV !== 'production' || rows.length === 0) {
-      console.log(`BannersService.getByCategory('${category}'): rows=${rows.length}, first image_url=${rows[0] ? (rows[0] as Record<string, unknown>).image_url : 'n/a'}`);
+      console.log(`BannersService.getByCategory('${category}' -> '${normalizedCategory}'): rows=${rows.length}, first image_url=${rows[0] ? (rows[0] as Record<string, unknown>).image_url : 'n/a'}`);
     }
 
     return this.mapToResponseDto(rows);
