@@ -62,16 +62,12 @@ export class BannersService {
       return [];
     }
 
-<<<<<<< HEAD
-    return this.mapToResponseDto(data || []);
-=======
     const rows = data || [];
     if (process.env.NODE_ENV !== 'production' || rows.length === 0) {
       console.log(`BannersService.getByCategory('${category}' -> '${normalizedCategory}'): rows=${rows.length}, first image_url=${rows[0] ? (rows[0] as Record<string, unknown>).image_url : 'n/a'}`);
     }
 
     return this.mapToResponseDto(rows);
->>>>>>> dc07cec20df3b9c5c66411d2b67f1d4c347dc748
   }
 
   async getAll(): Promise<BannerResponseDto[]> {
