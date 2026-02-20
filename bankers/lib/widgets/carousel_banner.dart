@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'illustration_image.dart';
+import 'dynamic_image.dart';
 
 class CarouselBanner extends StatefulWidget {
-  final List<String> imagePaths;
-  final List<String>? imageUrls; // Network image URLs
+  final List<String>? imageUrls;
   final double height;
   final Duration autoScrollDuration;
 
   const CarouselBanner({
     super.key,
-    this.imagePaths = const [],
-    this.imageUrls,
+    required this.imageUrls,
     this.height = 120,
     this.autoScrollDuration = const Duration(seconds: 4),
   });
@@ -41,12 +39,7 @@ class _CarouselBannerState extends State<CarouselBanner> {
   }
 
   List<String> get _allImages {
-    final urls = widget.imageUrls ?? [];
-    return urls.isNotEmpty ? urls : widget.imagePaths;
-  }
-
-  bool get _isNetworkImage {
-    return widget.imageUrls != null && widget.imageUrls!.isNotEmpty;
+    return widget.imageUrls ?? [];
   }
 
   void _startAutoScroll() {
@@ -94,49 +87,12 @@ class _CarouselBannerState extends State<CarouselBanner> {
             itemCount: 10000,
             itemBuilder: (context, index) {
               final image = _allImages[index % _allImages.length];
-              if (_isNetworkImage) {
-                return Image.network(
-                  image,
-                  width: double.infinity,
-                  height: widget.height,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: double.infinity,
-                      height: widget.height,
-                      color: Colors.grey[200],
-                      child: Icon(
-                        Icons.image_not_supported,
-                        color: Colors.grey[400],
-                        size: 40,
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: double.infinity,
-                      height: widget.height,
-                      color: Colors.grey[200],
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              } else {
-                return IllustrationImage(
-                  assetPath: image,
-                  width: double.infinity,
-                  height: widget.height,
-                  fit: BoxFit.cover,
-                );
-              }
+              return DynamicImage(
+                imageUrl: image,
+                width: double.infinity,
+                height: widget.height,
+                fit: BoxFit.cover,
+              );
             },
           ),
         ),

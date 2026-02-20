@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
-import '../utils/app_images.dart';
 import '../theme/app_theme.dart';
-import '../widgets/illustration_image.dart';
 import '../services/api_service.dart';
+import '../widgets/dynamic_image.dart';
 
 /// Instant Personal Loan lead form: header image + Apply Now / Product Details tabs + form.
 /// Premium look with app color theme.
@@ -32,12 +31,44 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   bool _disclaimerChecked = false;
   String _selectedCategory = 'personal_loan';
   bool _isSubmitting = false;
+  String? _headerImageUrl;
+  bool _isLoadingHeader = true;
 
   final List<Map<String, String>> _categories = [
     {'value': 'personal_loan', 'label': 'Personal Loan'},
     {'value': 'insurance', 'label': 'Insurance'},
     {'value': 'credit_card', 'label': 'Credit Card'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHeaderImage();
+  }
+
+  Future<void> _loadHeaderImage() async {
+    try {
+      final banners = await ApiService.instance.getBanners(category: 'lead_form');
+      if (mounted) {
+        setState(() {
+          if (banners.isNotEmpty) {
+            final imageUrl = banners.first['imageUrl'] as String?;
+            _headerImageUrl = (imageUrl != null && imageUrl.isNotEmpty) ? imageUrl : null;
+          } else {
+            _headerImageUrl = null;
+          }
+          _isLoadingHeader = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _headerImageUrl = null;
+          _isLoadingHeader = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -88,26 +119,36 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   }
 
   Widget _buildHeaderImage() {
-    return ClipRect(
-      child: SizedBox(
+    if (_isLoadingHeader) {
+      return Container(
         height: 180,
         width: double.infinity,
-        child: Image.asset(
-          AppImages.leadFormHeader,
-          width: double.infinity,
-          height: double.infinity,
-          fit: BoxFit.cover,
-          alignment: Alignment.bottomCenter,
-          errorBuilder: (_, __, ___) => Container(
-            height: 180,
-            color: const Color(AppConstants.mainBackground),
-            child: const Icon(
-              Icons.image_outlined,
-              size: 60,
-              color: Color(AppConstants.lightText),
-            ),
-          ),
+        color: Colors.grey[200],
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+
+    if (_headerImageUrl == null || _headerImageUrl!.isEmpty) {
+      return Container(
+        height: 180,
+        width: double.infinity,
+        color: Colors.grey[200],
+        child: Icon(
+          Icons.image_not_supported,
+          color: Colors.grey[400],
+          size: 48,
         ),
+      );
+    }
+
+    return SizedBox(
+      height: 180,
+      width: double.infinity,
+      child: DynamicImage(
+        imageUrl: _headerImageUrl,
+        width: double.infinity,
+        height: 180,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -472,7 +513,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     });
 
     try {
-      // Get user_id from mobile number
       final prefs = await SharedPreferences.getInstance();
       final mobileNumber = prefs.getString(AppConstants.keyMobileNumber) ?? '';
       
@@ -482,7 +522,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         userId = user?['id']?.toString();
       }
 
-      // Submit lead
       final success = await ApiService.instance.createLead(
         pan: _panController.text.trim().toUpperCase(),
         mobileNumber: _mobileController.text.trim(),
@@ -503,7 +542,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
             backgroundColor: AppTheme.success,
           ),
         );
-        // Clear form
         _panController.clear();
         _mobileController.clear();
         _fullNameController.clear();

@@ -24,7 +24,6 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(AppConstants.mainBackground),
         fontFamily: 'Arial',
-        textTheme: ThemeData().textTheme.apply(fontFamily: 'Arial'),
       ),
       home: const SplashScreen(),
     );

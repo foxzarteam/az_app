@@ -251,7 +251,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             ),
           ),
 
-          // Bubble shapes
           Positioned(
             top: size.height * 0.08,
             left: -30,

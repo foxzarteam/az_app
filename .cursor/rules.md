@@ -96,6 +96,9 @@ FRONTEND RULES (Flutter / Next)
 - Keep UI separate from logic.
 - Do not write business logic inside UI.
 - Create reusable components/widgets.
+- Always load images dynamically from database, never use static image paths.
+- Use DynamicImage widget for all network images to handle CORS properly.
+- Remove debug code and unnecessary comments before committing.
 
 ================================================
 

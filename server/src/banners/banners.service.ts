@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_CLIENT } from '../config/supabase.config';
 import { TABLE_BANNERS } from '../common/constants';
@@ -8,6 +9,7 @@ import { BannerResponseDto } from './dto/banner-response.dto';
 export class BannersService {
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    private readonly config: ConfigService,
   ) {}
 
   private get banners() {
@@ -22,9 +24,6 @@ export class BannersService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('BannersService.getAllActive', error);
-      }
       return [];
     }
 
@@ -40,16 +39,10 @@ export class BannersService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('BannersService.getByCategory error', error.message);
       return [];
     }
 
-    const rows = data || [];
-    if (process.env.NODE_ENV !== 'production' || rows.length === 0) {
-      console.log(`BannersService.getByCategory('${category}'): rows=${rows.length}, first image_url=${rows[0] ? (rows[0] as Record<string, unknown>).image_url : 'n/a'}`);
-    }
-
-    return this.mapToResponseDto(rows);
+    return this.mapToResponseDto(data || []);
   }
 
   async getAll(): Promise<BannerResponseDto[]> {
@@ -59,21 +52,45 @@ export class BannersService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('BannersService.getAll', error);
-      }
       return [];
     }
 
     return this.mapToResponseDto(data || []);
   }
 
-  /** Pass through any non-empty http(s) URL from DB; only skip empty or clearly non-URL values */
   private getImageUrl(url: unknown): string {
     if (typeof url !== 'string' || !url.trim()) return '';
-    const u = url.trim();
-    if (u.startsWith('http://') || u.startsWith('https://')) return u;
-    return '';
+    let u = url.trim();
+    
+    if (u.startsWith('http://') || u.startsWith('https://')) {
+      return u;
+    }
+    
+    const baseUrl = process.env.BASE_URL || this.config.get<string>('BASE_URL');
+    
+    if (!baseUrl) {
+      const port = this.config.get<number>('PORT', 3000);
+      const fallbackUrl = `http://localhost:${port}`;
+      if (u.startsWith('/')) {
+        u = u.substring(1);
+      }
+      if (u.startsWith('images/')) {
+        u = u.substring(7);
+      }
+      return `${fallbackUrl}/images/${u}`;
+    }
+    
+    if (u.startsWith('/')) {
+      u = u.substring(1);
+    }
+    
+    if (u.startsWith('images/')) {
+      u = u.substring(7);
+    }
+    
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    
+    return `${cleanBaseUrl}/images/${u}`;
   }
 
   private mapToResponseDto(data: Record<string, unknown>[]): BannerResponseDto[] {

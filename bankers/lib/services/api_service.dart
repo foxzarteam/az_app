@@ -24,16 +24,10 @@ class ApiService {
     try {
       final res = await request();
       if (res.statusCode >= 400) {
-        if (kDebugMode) {
-          debugPrint('ApiService $method $path ${res.statusCode}');
-        }
         return null;
       }
       return jsonDecode(res.body) as Map<String, dynamic>?;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('ApiService $method $path error: $e');
-      }
       return null;
     }
   }

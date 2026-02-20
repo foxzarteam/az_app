@@ -400,7 +400,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           else
                             const SizedBox(height: 40),
 
-                          // Form section
                           Expanded(
                             flex: isKeyboardVisible ? 1 : 4,
                             child: Container(

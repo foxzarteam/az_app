@@ -1,23 +1,17 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
-import '../config/api_config.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
-import '../utils/app_images.dart';
 import '../utils/page_routes.dart';
 import '../theme/app_theme.dart';
 import '../widgets/user_qr_code_widget.dart';
 import '../widgets/carousel_banner.dart';
-import '../widgets/illustration_image.dart';
+import '../widgets/dynamic_image.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/drawer_menu_item.dart';
 import '../services/api_service.dart';
-import '../models/banner_model.dart';
 import 'personal_details_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -40,26 +34,20 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<String> _bannerUrls = [];
+  String? _kycBannerUrl;
   bool _isLoadingBanners = true;
-  String? _bannerError;
+  bool _isLoadingKyc = true;
 
   @override
   void initState() {
     super.initState();
     _loadBanners();
+    _loadKycBanner();
   }
 
   Future<void> _loadBanners() async {
     try {
       final bannersData = await ApiService.instance.getBanners(category: 'carousel');
-      // DEBUG: print DB se aane wale image path/URL
-      if (kDebugMode) {
-        for (var i = 0; i < bannersData.length; i++) {
-          final url = bannersData[i]['imageUrl'] as String? ?? '';
-          debugPrint('Banner[$i] imageUrl from DB: "$url"');
-        }
-        debugPrint('Total banners: ${bannersData.length}, URLs used: ${bannersData.map((b) => b['imageUrl'] as String? ?? '').where((u) => u.isNotEmpty).length}');
-      }
       if (mounted) {
         setState(() {
           _bannerUrls = bannersData
@@ -72,9 +60,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isLoadingBanners = false;
-          // Fallback to local images if API fails
           _bannerUrls = [];
+          _isLoadingBanners = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadKycBanner() async {
+    try {
+      final kycBanners = await ApiService.instance.getBanners(category: 'kyc');
+      if (mounted) {
+        setState(() {
+          _kycBannerUrl = kycBanners.isNotEmpty
+              ? (kycBanners.first['imageUrl'] as String? ?? '')
+              : null;
+          _isLoadingKyc = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _kycBannerUrl = null;
+          _isLoadingKyc = false;
         });
       }
     }
@@ -261,16 +269,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onShare: _showShareOptions,
               bannerUrls: _bannerUrls,
               isLoadingBanners: _isLoadingBanners,
+              kycBannerUrl: _kycBannerUrl,
+              isLoadingKyc: _isLoadingKyc,
             ),
           ),
         ],
       ),
       bottomNavigationBar: CommonBottomNav(
         currentIndex: 0,
-        onLeadsTap: () {
-          // Navigation handled by MainShellScreen - this screen should not be used directly
-          // If you see this, replace DashboardScreen with MainShellScreen
-        },
+        onLeadsTap: () {},
       ),
     );
   }
@@ -409,14 +416,80 @@ class _ShareSheetContent extends StatelessWidget {
 }
 
 /// Body-only for shell (no nav/footer). Uses same content as dashboard.
-class DashboardBody extends StatelessWidget {
+class DashboardBody extends StatefulWidget {
   final VoidCallback onSharePersonalLoan;
 
   const DashboardBody({super.key, required this.onSharePersonalLoan});
 
   @override
+  State<DashboardBody> createState() => _DashboardBodyState();
+}
+
+class _DashboardBodyState extends State<DashboardBody> {
+  List<String> _bannerUrls = [];
+  String? _kycBannerUrl;
+  bool _isLoadingBanners = true;
+  bool _isLoadingKyc = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBanners();
+    _loadKycBanner();
+  }
+
+  Future<void> _loadBanners() async {
+    try {
+      final bannersData = await ApiService.instance.getBanners(category: 'carousel');
+      if (mounted) {
+        setState(() {
+          _bannerUrls = bannersData
+              .map((banner) => banner['imageUrl'] as String? ?? '')
+              .where((url) => url.isNotEmpty)
+              .toList();
+          _isLoadingBanners = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _bannerUrls = [];
+          _isLoadingBanners = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadKycBanner() async {
+    try {
+      final kycBanners = await ApiService.instance.getBanners(category: 'kyc');
+      if (mounted) {
+        setState(() {
+          _kycBannerUrl = kycBanners.isNotEmpty
+              ? (kycBanners.first['imageUrl'] as String? ?? '')
+              : null;
+          _isLoadingKyc = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _kycBannerUrl = null;
+          _isLoadingKyc = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return _DashboardBodyBuilder(onShare: onSharePersonalLoan);
+    return _DashboardBodyBuilder(
+      onShare: widget.onSharePersonalLoan,
+      bannerUrls: _bannerUrls,
+      isLoadingBanners: _isLoadingBanners,
+      kycBannerUrl: _kycBannerUrl,
+      isLoadingKyc: _isLoadingKyc,
+    );
   }
 }
 
@@ -456,11 +529,15 @@ class _DashboardBodyBuilder extends StatelessWidget {
   final VoidCallback onShare;
   final List<String> bannerUrls;
   final bool isLoadingBanners;
+  final String? kycBannerUrl;
+  final bool isLoadingKyc;
 
   const _DashboardBodyBuilder({
     required this.onShare,
     this.bannerUrls = const [],
     this.isLoadingBanners = false,
+    this.kycBannerUrl,
+    this.isLoadingKyc = false,
   });
 
   @override
@@ -484,7 +561,6 @@ class _DashboardBodyBuilder extends StatelessWidget {
             _buildSellAndEarnSection(AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.primaryBlueDark),
             const SizedBox(height: 24),
             _buildCarouselBanner(),
-            if (kDebugMode) ..._buildDebugBannerUrls(),
             const SizedBox(height: 24),
             _buildKYCBanner(AppTheme.primaryBlue, AppTheme.accentOrange),
           ],
@@ -502,43 +578,11 @@ class _DashboardBodyBuilder extends StatelessWidget {
   }
 
   Widget _buildKYCBanner(Color darkBlue, Color accentOrange) {
-    return _copyOfBuildKYCBanner(darkBlue, accentOrange);
+    return _copyOfBuildKYCBanner(darkBlue, accentOrange, kycBannerUrl, isLoadingKyc);
   }
 
-  List<Widget> _buildDebugBannerUrls() {
-    return [
-      const SizedBox(height: 12),
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('DB se aaye image path (debug):', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 12)),
-            const SizedBox(height: 8),
-            if (bannerUrls.isEmpty)
-              Text('Koi URL nahi aaya (empty)', style: TextStyle(color: Colors.red.shade700, fontSize: 11))
-            else
-              ...bannerUrls.asMap().entries.map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: SelectableText(
-                  '${e.key + 1}. ${e.value}',
-                  style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
-                ),
-              )),
-          ],
-        ),
-      ),
-    ];
-  }
 
   Widget _buildCarouselBanner() {
-    // Only DB/API banners (image_url from banners table) – no local folder fallback
     if (bannerUrls.isNotEmpty) {
       return CarouselBanner(
         imageUrls: bannerUrls,
@@ -559,7 +603,6 @@ class _DashboardBodyBuilder extends StatelessWidget {
         ),
       );
     }
-    // No banners from DB – show empty placeholder
     return Container(
       height: 120,
       width: double.infinity,
@@ -716,7 +759,12 @@ class _DashboardBodyBuilder extends StatelessWidget {
     );
   }
 
-  static Widget _copyOfBuildKYCBanner(Color darkBlue, Color accentOrange) {
+  static Widget _copyOfBuildKYCBanner(
+    Color darkBlue,
+    Color accentOrange,
+    String? kycBannerUrl,
+    bool isLoadingKyc,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -730,7 +778,21 @@ class _DashboardBodyBuilder extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: SizedBox(width: 64, height: 64, child: IllustrationImage(assetPath: AppImages.kycSuccess, width: 64, height: 64, fit: BoxFit.cover)),
+            child: SizedBox(
+              width: 64,
+              height: 64,
+              child: isLoadingKyc
+                  ? Container(
+                      color: Colors.grey[200],
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  : DynamicImage(
+                      imageUrl: kycBannerUrl,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                    ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
