@@ -35,6 +35,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<String> _bannerUrls = [];
   String? _kycBannerUrl;
+  Map<String, String?> _categoryPromoUrls = {};
   bool _isLoadingBanners = true;
   bool _isLoadingKyc = true;
 
@@ -43,6 +44,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _loadBanners();
     _loadKycBanner();
+    _loadCategoryPromos();
+  }
+
+  Future<void> _loadCategoryPromos() async {
+    const categories = ['personal_loan', 'credit_card', 'insurance'];
+    final Map<String, String?> promos = {};
+    for (final cat in categories) {
+      try {
+        final list = await ApiService.instance.getBanners(category: cat);
+        promos[cat] = list.isNotEmpty ? (list.first['imageUrl'] as String? ?? '') : null;
+        if (promos[cat] != null && (promos[cat] ?? '').isEmpty) promos[cat] = null;
+      } catch (_) {
+        promos[cat] = null;
+      }
+    }
+    if (mounted) setState(() => _categoryPromoUrls = promos);
   }
 
   Future<void> _loadBanners() async {
@@ -271,6 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               isLoadingBanners: _isLoadingBanners,
               kycBannerUrl: _kycBannerUrl,
               isLoadingKyc: _isLoadingKyc,
+              categoryPromoUrls: _categoryPromoUrls,
             ),
           ),
         ],
@@ -428,6 +446,7 @@ class DashboardBody extends StatefulWidget {
 class _DashboardBodyState extends State<DashboardBody> {
   List<String> _bannerUrls = [];
   String? _kycBannerUrl;
+  Map<String, String?> _categoryPromoUrls = {};
   bool _isLoadingBanners = true;
   bool _isLoadingKyc = true;
 
@@ -436,6 +455,22 @@ class _DashboardBodyState extends State<DashboardBody> {
     super.initState();
     _loadBanners();
     _loadKycBanner();
+    _loadCategoryPromos();
+  }
+
+  Future<void> _loadCategoryPromos() async {
+    const categories = ['personal_loan', 'credit_card', 'insurance'];
+    final Map<String, String?> promos = {};
+    for (final cat in categories) {
+      try {
+        final list = await ApiService.instance.getBanners(category: cat);
+        promos[cat] = list.isNotEmpty ? (list.first['imageUrl'] as String? ?? '') : null;
+        if (promos[cat] != null && (promos[cat] ?? '').isEmpty) promos[cat] = null;
+      } catch (_) {
+        promos[cat] = null;
+      }
+    }
+    if (mounted) setState(() => _categoryPromoUrls = promos);
   }
 
   Future<void> _loadBanners() async {
@@ -489,6 +524,7 @@ class _DashboardBodyState extends State<DashboardBody> {
       isLoadingBanners: _isLoadingBanners,
       kycBannerUrl: _kycBannerUrl,
       isLoadingKyc: _isLoadingKyc,
+      categoryPromoUrls: _categoryPromoUrls,
     );
   }
 }
@@ -531,6 +567,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
   final bool isLoadingBanners;
   final String? kycBannerUrl;
   final bool isLoadingKyc;
+  final Map<String, String?> categoryPromoUrls;
 
   const _DashboardBodyBuilder({
     required this.onShare,
@@ -538,6 +575,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
     this.isLoadingBanners = false,
     this.kycBannerUrl,
     this.isLoadingKyc = false,
+    this.categoryPromoUrls = const <String, String?>{},
   });
 
   @override
@@ -574,7 +612,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
   }
 
   Widget _buildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark) {
-    return _copyOfBuildSellAndEarnSection(primary, accentOrange, primaryDark);
+    return _copyOfBuildSellAndEarnSection(primary, accentOrange, primaryDark, categoryPromoUrls);
   }
 
   Widget _buildKYCBanner(Color darkBlue, Color accentOrange) {
@@ -677,38 +715,35 @@ class _DashboardBodyBuilder extends StatelessWidget {
     );
   }
 
-  Widget _copyOfBuildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark) {
+  Widget _copyOfBuildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark, Map<String, String?> categoryPromoUrls) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, accentOrange.withOpacity(0.3), Colors.transparent])))),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('SELL & EARN', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: accentOrange, letterSpacing: 1))),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('SELL & EARN', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: accentOrange, letterSpacing: 1))),
             Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, accentOrange.withOpacity(0.3), Colors.transparent])))),
           ],
         ),
         const SizedBox(height: 20),
         SizedBox(
           height: 132,
-          child: _HorizontalScrollWithBar(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(width: 118, child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onShare)),
-                const SizedBox(width: 6),
-                SizedBox(width: 118, child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2))),
-                const SizedBox(width: 6),
-                SizedBox(width: 118, child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2))),
-              ],
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onShare, promoImageUrl: categoryPromoUrls['personal_loan']))),
+              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2), promoImageUrl: categoryPromoUrls['credit_card']))),
+              Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2), promoImageUrl: categoryPromoUrls['insurance']))),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildServiceCard({required IconData icon, required String title, required String subtitle, required Color iconColor, required Color bottomColor, VoidCallback? onTap}) {
+  Widget _buildServiceCard({required IconData icon, required String title, required String subtitle, required Color iconColor, required Color bottomColor, VoidCallback? onTap, String? promoImageUrl}) {
+    final hasPromoImage = promoImageUrl != null && promoImageUrl.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -739,9 +774,16 @@ class _DashboardBodyBuilder extends StatelessWidget {
                       child: Icon(icon, color: iconColor, size: 28),
                     ),
                     const Spacer(),
-                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.primaryText)),
+                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.primaryText)),
                     const SizedBox(height: 2),
-                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.accentOrange)),
+                    if (hasPromoImage)
+                      SizedBox(
+                        height: 26,
+                        width: double.infinity,
+                        child: DynamicImage(imageUrl: promoImageUrl, fit: BoxFit.contain),
+                      )
+                    else
+                      Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.accentOrange)),
                   ],
                 ),
               ),

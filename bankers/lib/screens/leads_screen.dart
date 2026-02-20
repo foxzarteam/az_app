@@ -3,11 +3,40 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
+import '../widgets/dynamic_image.dart';
+import '../services/api_service.dart';
 import 'lead_form_screen.dart';
 
 /// Content-only widget for Leads (no nav/footer). Used by MainShellScreen.
-class LeadsContent extends StatelessWidget {
+class LeadsContent extends StatefulWidget {
   const LeadsContent({super.key});
+
+  @override
+  State<LeadsContent> createState() => _LeadsContentState();
+}
+
+class _LeadsContentState extends State<LeadsContent> {
+  String? _leadsPromoImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLeadsPromo();
+  }
+
+  Future<void> _loadLeadsPromo() async {
+    try {
+      final list = await ApiService.instance.getBanners(category: 'leads');
+      if (mounted) {
+        setState(() {
+          _leadsPromoImageUrl = list.isNotEmpty ? (list.first['imageUrl'] as String? ?? '') : null;
+          if (_leadsPromoImageUrl != null && _leadsPromoImageUrl!.isEmpty) _leadsPromoImageUrl = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _leadsPromoImageUrl = null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +61,7 @@ class LeadsContent extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-              child: _buildEarnRewardsCard(context),
+              child: _buildEarnRewardsCard(context, leadsPromoImageUrl: _leadsPromoImageUrl),
             ),
           ),
         ],
@@ -219,7 +248,7 @@ class LeadsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildEarnRewardsCard(BuildContext context) {
+  Widget _buildEarnRewardsCard(BuildContext context, {String? leadsPromoImageUrl}) {
     const primaryBlue = Color(AppConstants.primaryColor);
     const accentOrange = Color(AppConstants.accentColor);
     return Container(
@@ -285,34 +314,23 @@ class LeadsContent extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: 12,
-                bottom: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [accentOrange, accentOrange.withOpacity(0.85)],
-                    ),
+              if (leadsPromoImageUrl != null && leadsPromoImageUrl.isNotEmpty)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 12,
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentOrange.withOpacity(0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                    child: SizedBox(
+                      height: 44,
+                      width: double.infinity,
+                      child: DynamicImage(
+                        imageUrl: leadsPromoImageUrl,
+                        fit: BoxFit.cover,
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    AppConstants.bannerEarnPerLead,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ],
