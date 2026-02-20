@@ -15,7 +15,9 @@ export class BannersController {
   @Get('category/:category')
   @HttpCode(HttpStatus.OK)
   async getByCategory(@Param('category') category: string) {
-    const banners = await this.bannersService.getByCategory(category);
+    // Decode URL-encoded category parameter
+    const decodedCategory = decodeURIComponent(category);
+    const banners = await this.bannersService.getByCategory(decodedCategory);
     return { success: true, data: banners };
   }
 
