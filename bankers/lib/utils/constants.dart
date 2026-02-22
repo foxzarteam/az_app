@@ -4,6 +4,8 @@ class AppConstants {
   static const int otpExpirationMinutes = 5;
   static const int otpResendCooldownSeconds = 60;
 
+  static const String appName = 'Apni Zaroorat';
+
   // Indian mobile validation
   static const int mobileNumberLength = 10;
   static const String mobileNumberPattern = r'^[6-9]\d{9}$';
@@ -138,6 +140,11 @@ class AppConstants {
   static const String subtitleGetPaidPerLead = 'Get paid for every successful lead';
   static const String bannerEarnPerLead = 'Earn Up to ₹1000 Per Lead';
   static const String buttonAddLeadNow = 'Add Lead Now';
+  static const String buttonAddLeadManually = 'Add a New Lead Manually';
+  static const String shareToCustomer = 'Share to Customer';
+  static const String labelFavourite = 'Favourite';
+  static const String labelInstantPayouts = 'INSTANT PAYOUTS';
+  static const String earnUptoPrefix = 'Earn Upto';
 
   // Bottom nav
   static const String labelToGold = 'To Gold';

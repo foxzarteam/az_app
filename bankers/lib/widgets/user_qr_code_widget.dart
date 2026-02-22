@@ -46,9 +46,9 @@ class UserQrCodeWidget extends StatelessWidget {
         children: [
           Text(
             AppConstants.msgMyQrCode,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
               color: darkBlue,
             ),
           ),
@@ -70,9 +70,9 @@ class UserQrCodeWidget extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             userName,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: const Color(AppConstants.primaryText),
             ),
             textAlign: TextAlign.center,
@@ -80,7 +80,7 @@ class UserQrCodeWidget extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             mobileNumber,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: const Color(AppConstants.secondaryText),

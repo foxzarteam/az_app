@@ -220,9 +220,9 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
                             },
                             child: Text(
                               AppConstants.msgForgotMpinClick,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: AppTheme.accentOrange,
                                 decoration: TextDecoration.underline,
                               ),

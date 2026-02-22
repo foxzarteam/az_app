@@ -51,9 +51,9 @@ class AuthHeader extends StatelessWidget {
             delay: const Duration(milliseconds: 200),
             child: Text(
               title,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 32,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 color: AppTheme.white,
                 letterSpacing: 0.5,
               ),
@@ -67,7 +67,7 @@ class AuthHeader extends StatelessWidget {
               child: Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   color: AppTheme.white.withOpacity(0.9),

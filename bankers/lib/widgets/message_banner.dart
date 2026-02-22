@@ -49,10 +49,10 @@ class MessageBanner extends StatelessWidget {
           Flexible(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 13,
                 color: _textAndIconColor,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

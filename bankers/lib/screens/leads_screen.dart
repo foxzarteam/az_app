@@ -1,42 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../config/app_config.dart';
 import '../utils/constants.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
-import '../widgets/dynamic_image.dart';
-import '../services/api_service.dart';
-import 'lead_form_screen.dart';
+import '../widgets/app_image.dart';
+import 'add_lead_screen.dart';
 
 /// Content-only widget for Leads (no nav/footer). Used by MainShellScreen.
-class LeadsContent extends StatefulWidget {
+class LeadsContent extends StatelessWidget {
   const LeadsContent({super.key});
-
-  @override
-  State<LeadsContent> createState() => _LeadsContentState();
-}
-
-class _LeadsContentState extends State<LeadsContent> {
-  String? _leadsPromoImageUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLeadsPromo();
-  }
-
-  Future<void> _loadLeadsPromo() async {
-    try {
-      final list = await ApiService.instance.getBanners(category: 'leads');
-      if (mounted) {
-        setState(() {
-          _leadsPromoImageUrl = list.isNotEmpty ? (list.first['imageUrl'] as String? ?? '') : null;
-          if (_leadsPromoImageUrl != null && _leadsPromoImageUrl!.isEmpty) _leadsPromoImageUrl = null;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _leadsPromoImageUrl = null);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +34,7 @@ class _LeadsContentState extends State<LeadsContent> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-              child: _buildEarnRewardsCard(context, leadsPromoImageUrl: _leadsPromoImageUrl),
+              child: _buildEarnRewardsCard(context),
             ),
           ),
         ],
@@ -104,16 +77,16 @@ class _LeadsContentState extends State<LeadsContent> {
                 children: [
                   Text(
                     AppConstants.labelTotalAddedLeads,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     AppConstants.subtitleSeeAllLeads,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: Colors.white.withOpacity(0.9),
@@ -134,9 +107,9 @@ class _LeadsContentState extends State<LeadsContent> {
                       children: [
                         Text(
                           AppConstants.labelViewDetails,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
                         ),
@@ -223,9 +196,9 @@ class _LeadsContentState extends State<LeadsContent> {
           if (count != null)
             Text(
               '$count',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 20,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: const Color(AppConstants.primaryText),
               ),
             )
@@ -234,7 +207,7 @@ class _LeadsContentState extends State<LeadsContent> {
           if (count != null) const SizedBox(height: 2),
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: const Color(AppConstants.secondaryText),
@@ -248,7 +221,7 @@ class _LeadsContentState extends State<LeadsContent> {
     );
   }
 
-  Widget _buildEarnRewardsCard(BuildContext context, {String? leadsPromoImageUrl}) {
+  Widget _buildEarnRewardsCard(BuildContext context) {
     const primaryBlue = Color(AppConstants.primaryColor);
     const accentOrange = Color(AppConstants.accentColor);
     return Container(
@@ -269,16 +242,16 @@ class _LeadsContentState extends State<LeadsContent> {
         children: [
           Text(
             AppConstants.titleAddLeadsEarnRewards,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: const Color(AppConstants.primaryText),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             AppConstants.subtitleGetPaidPerLead,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
               color: const Color(AppConstants.secondaryText),
@@ -314,23 +287,22 @@ class _LeadsContentState extends State<LeadsContent> {
                   ),
                 ),
               ),
-              if (leadsPromoImageUrl != null && leadsPromoImageUrl.isNotEmpty)
-                Positioned(
-                  left: 12,
-                  right: 12,
-                  bottom: 12,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      height: 44,
-                      width: double.infinity,
-                      child: DynamicImage(
-                        imageUrl: leadsPromoImageUrl,
-                        fit: BoxFit.cover,
-                      ),
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 12,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    height: 44,
+                    width: double.infinity,
+                    child: AppImage(
+                      assetPath: AppConfig.leadsPromo,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
+              ),
             ],
           ),
         ],
@@ -348,7 +320,7 @@ class _LeadsContentState extends State<LeadsContent> {
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const LeadFormScreen()),
+            MaterialPageRoute(builder: (_) => const AddLeadScreen()),
           );
         },
         borderRadius: BorderRadius.circular(28),
@@ -363,9 +335,9 @@ class _LeadsContentState extends State<LeadsContent> {
               const SizedBox(width: 10),
               Text(
                 AppConstants.buttonAddLeadNow,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),

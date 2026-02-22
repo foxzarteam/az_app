@@ -105,9 +105,9 @@ class CommonNavBar extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Hi, $userName',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.inter(
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                     letterSpacing: 0.3,
                   ),
@@ -135,9 +135,9 @@ class CommonNavBar extends StatelessWidget {
                     ),
                     child: Text(
                       AppConstants.labelToGold,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),

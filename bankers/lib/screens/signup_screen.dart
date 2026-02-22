@@ -140,9 +140,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 AppConstants.msgSelectCountry,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                   color: darkGrayText,
                 ),
               ),
@@ -198,18 +198,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           Expanded(
                             child: Text(
                               country.name,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 fontSize: 16,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                                 color: darkGrayText,
                               ),
                             ),
                           ),
                           Text(
                             country.dialCode,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.inter(
                               fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: isSelected
                                   ? accentOrange
                                   : const Color(AppConstants.secondaryText),
@@ -355,20 +355,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            'Apni',
-                                            style: GoogleFonts.poppins(
+                                            '${AppConstants.appName.split(' ')[0]} ',
+                                            style: GoogleFonts.inter(
                                               fontSize: 36,
-                                              fontWeight: FontWeight.w900,
+                                              fontWeight: FontWeight.w500,
                                               color: Colors.white,
                                               letterSpacing: 1.5,
                                             ),
                                           ),
                                           Text(
-                                            'Zaroorat',
-                                            style: GoogleFonts.poppins(
+                                            AppConstants.appName.split(' ')[1],
+                                            style: GoogleFonts.inter(
                                               fontSize: 36,
-                                              fontWeight: FontWeight.w900,
-                                              color: yellow,
+                                              fontWeight: FontWeight.w500,
+                                              color: accentOrange,
                                               letterSpacing: 1.5,
                                             ),
                                           ),
@@ -431,9 +431,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           widget.isForgotMPIN
                                               ? AppConstants.msgResetMpin
                                               : AppConstants.msgGetStarted,
-                                          style: GoogleFonts.poppins(
+                                          style: GoogleFonts.inter(
                                             fontSize: 28,
-                                            fontWeight: FontWeight.w800,
+                                            fontWeight: FontWeight.w500,
                                             color: primaryBlue,
                                             letterSpacing: 0.5,
                                           ),
@@ -448,9 +448,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           children: [
                                             Text(
                                               'Mobile Number',
-                                              style: GoogleFonts.poppins(
+                                              style: GoogleFonts.inter(
                                                 fontSize: 14,
-                                                fontWeight: FontWeight.w600,
+                                                fontWeight: FontWeight.w500,
                                                 color: const Color(AppConstants.primaryText),
                                               ),
                                             ),
@@ -523,9 +523,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                           const SizedBox(width: 8),
                                                           Text(
                                                             _selectedCountry.dialCode,
-                                                            style: GoogleFonts.poppins(
+                                                            style: GoogleFonts.inter(
                                                               fontSize: 15,
-                                                              fontWeight: FontWeight.w700,
+                                                              fontWeight: FontWeight.w500,
                                                               color: Colors.white,
                                                             ),
                                                           ),
@@ -546,15 +546,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                         controller: _mobileController,
                                                         keyboardType: TextInputType.phone,
                                                         maxLength: 10,
-                                                        style: GoogleFonts.poppins(
+                                                        style: GoogleFonts.inter(
                                                           fontSize: 17,
-                                                          fontWeight: FontWeight.w600,
+                                                          fontWeight: FontWeight.w500,
                                                           color: const Color(AppConstants.primaryText),
                                                           letterSpacing: 1,
                                                         ),
                                                         decoration: InputDecoration(
                                                           hintText: AppConstants.hintMobilePlaceholder,
-                                                          hintStyle: GoogleFonts.poppins(
+                                                          hintStyle: GoogleFonts.inter(
                                                             color: const Color(AppConstants.lightText),
                                                             fontSize: 17,
                                                           ),
@@ -605,13 +605,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                 child: Container(
                                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                                   child: _isLoading
-                                                      ? const SizedBox(
-                                                          height: 22,
-                                                          width: 22,
-                                                          child: CircularProgressIndicator(
-                                                            strokeWidth: 2.5,
-                                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                                              Colors.white,
+                                                      ? const Center(
+                                                          child: SizedBox(
+                                                            height: 20,
+                                                            width: 20,
+                                                            child: CircularProgressIndicator(
+                                                              strokeWidth: 2,
+                                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                                Colors.white,
+                                                              ),
                                                             ),
                                                           ),
                                                         )
@@ -620,9 +622,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                           children: [
                                                             Text(
                                                               'Continue',
-                                                              style: GoogleFonts.poppins(
+                                                              style: GoogleFonts.inter(
                                                                 fontSize: 17,
-                                                                fontWeight: FontWeight.w700,
+                                                                fontWeight: FontWeight.w500,
                                                                 letterSpacing: 1,
                                                                 color: Colors.white,
                                                               ),
@@ -646,7 +648,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         child: Text(
                                           AppConstants.msgTermsPrivacy,
                                           textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(
+                                          style: GoogleFonts.inter(
                                             fontSize: 11,
                                             color: const Color(AppConstants.lightText),
                                           ),

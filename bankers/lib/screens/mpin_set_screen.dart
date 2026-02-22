@@ -158,7 +158,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
         ),
         backgroundColor: isError
             ? Colors.red
@@ -297,9 +297,9 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                       const SizedBox(height: 24),
                                       Text(
                                         AppConstants.msgSetMpinTitle,
-                                        style: GoogleFonts.poppins(
+                                        style: GoogleFonts.inter(
                                           fontSize: 32,
-                                          fontWeight: FontWeight.w800,
+                                          fontWeight: FontWeight.w500,
                                           color: Colors.white,
                                           letterSpacing: 0.5,
                                         ),
@@ -310,7 +310,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                         child: Text(
                                           AppConstants.msgSetMpinSubtitle,
                                           textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(
+                                          style: GoogleFonts.inter(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w400,
                                             color: Colors.white.withOpacity(0.9),
@@ -358,9 +358,9 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                               keyboardType: TextInputType.number,
                                               maxLength: 1,
                                               obscureText: true,
-                                              style: GoogleFonts.poppins(
+                                              style: GoogleFonts.inter(
                                                 fontSize: 26,
-                                                fontWeight: FontWeight.w700,
+                                                fontWeight: FontWeight.w500,
                                                 color: accentOrange,
                                                 letterSpacing: 2,
                                               ),
@@ -416,7 +416,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                             Expanded(
                                               child: Text(
                                                 AppConstants.msgRememberPin,
-                                                style: GoogleFonts.poppins(
+                                                style: GoogleFonts.inter(
                                                   fontSize: 13,
                                                   color: accentOrange.withOpacity(0.9),
                                                   fontWeight: FontWeight.w500,

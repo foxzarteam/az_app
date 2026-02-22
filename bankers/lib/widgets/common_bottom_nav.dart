@@ -169,9 +169,9 @@ class _CommonBottomNavState extends State<CommonBottomNav>
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 11,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
               color: color,
             ),
           ),

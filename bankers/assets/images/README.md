@@ -1,12 +1,13 @@
-# FreePik-style illustrations
+# App images (assets/images)
 
-Add PNG images here (from FreePik or similar). Use flat, friendly illustrations.
+All image paths are defined in `lib/config/app_assets.dart`. Add these files here:
 
-| File | Use | Suggested theme |
-|------|-----|-----------------|
-| `dashboard_hero.png` | Dashboard – welcome / achievement strip | Person with trophy, success, confetti |
-| `kyc_success.png` | KYC / Complete profile banner | Verification, trust, shield |
-| `empty_leads.png` | Empty state (if used later) | Friendly empty state |
+| File | Use |
+|------|-----|
+| `carousel_1.png`, `carousel_2.png` | Dashboard carousel |
+| `kyc_banner.png` | KYC banner on dashboard |
+| `leads_promo.png` | Leads screen promo strip |
+| `lead_form_header.png` | Lead form header |
+| `personal_loan_promo.png`, `credit_card_promo.png`, `insurance_promo.png` | Category promo cards |
 
-Download from FreePik (free or paid), then place files in this folder.  
-App shows a placeholder if a file is missing.
+Missing files show a placeholder. Change filenames or add more in `app_assets.dart` only.

@@ -1,16 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'dynamic_image.dart';
+import 'app_image.dart';
 
 class CarouselBanner extends StatefulWidget {
-  final List<String>? imageUrls;
-  final double height;
+  final List<String> assetPaths;
   final Duration autoScrollDuration;
 
   const CarouselBanner({
     super.key,
-    required this.imageUrls,
-    this.height = 120,
+    required this.assetPaths,
     this.autoScrollDuration = const Duration(seconds: 4),
   });
 
@@ -38,9 +36,7 @@ class _CarouselBannerState extends State<CarouselBanner> {
     super.dispose();
   }
 
-  List<String> get _allImages {
-    return widget.imageUrls ?? [];
-  }
+  List<String> get _allImages => widget.assetPaths;
 
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
@@ -79,22 +75,28 @@ class _CarouselBannerState extends State<CarouselBanner> {
       onPointerCancel: (_) => Future.delayed(const Duration(seconds: 2), _resume),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: widget.height,
-          width: double.infinity,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: 10000,
-            itemBuilder: (context, index) {
-              final image = _allImages[index % _allImages.length];
-              return DynamicImage(
-                imageUrl: image,
-                width: double.infinity,
-                height: widget.height,
-                fit: BoxFit.cover,
-              );
-            },
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final height = width / 3;
+            return SizedBox(
+              width: width,
+              height: height,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: 10000,
+                itemBuilder: (context, index) {
+                  final path = _allImages[index % _allImages.length];
+                  return AppImage(
+                    assetPath: path,
+                    width: width,
+                    height: height,
+                    fit: BoxFit.cover,
+                  );
+                },
+              ),
+            );
+          },
         ),
       ),
     );

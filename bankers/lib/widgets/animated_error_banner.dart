@@ -98,9 +98,9 @@ class _AnimatedErrorBannerState extends State<AnimatedErrorBanner>
                 Expanded(
                   child: Text(
                     widget.message,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),

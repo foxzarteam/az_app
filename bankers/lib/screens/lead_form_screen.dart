@@ -5,10 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
-import '../widgets/dynamic_image.dart';
+import '../widgets/common_nav_bar.dart';
 
-/// Instant Personal Loan lead form: header image + Apply Now / Product Details tabs + form.
-/// Premium look with app color theme.
+/// Lead form: Apply Now / Product Details tabs + form. Design consistent with app theme.
 class LeadFormScreen extends StatefulWidget {
   const LeadFormScreen({super.key});
 
@@ -17,10 +16,6 @@ class LeadFormScreen extends StatefulWidget {
 }
 
 class _LeadFormScreenState extends State<LeadFormScreen> {
-  static const int _tabApply = 0;
-  static const int _tabProduct = 1;
-  int _selectedTab = _tabApply;
-
   final _formKey = GlobalKey<FormState>();
   final _panController = TextEditingController();
   final _mobileController = TextEditingController();
@@ -31,44 +26,12 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   bool _disclaimerChecked = false;
   String _selectedCategory = 'personal_loan';
   bool _isSubmitting = false;
-  String? _headerImageUrl;
-  bool _isLoadingHeader = true;
 
   final List<Map<String, String>> _categories = [
     {'value': 'personal_loan', 'label': 'Personal Loan'},
     {'value': 'insurance', 'label': 'Insurance'},
     {'value': 'credit_card', 'label': 'Credit Card'},
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHeaderImage();
-  }
-
-  Future<void> _loadHeaderImage() async {
-    try {
-      final banners = await ApiService.instance.getBanners(category: 'lead_form');
-      if (mounted) {
-        setState(() {
-          if (banners.isNotEmpty) {
-            final imageUrl = banners.first['imageUrl'] as String?;
-            _headerImageUrl = (imageUrl != null && imageUrl.isNotEmpty) ? imageUrl : null;
-          } else {
-            _headerImageUrl = null;
-          }
-          _isLoadingHeader = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _headerImageUrl = null;
-          _isLoadingHeader = false;
-        });
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -85,124 +48,20 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(AppConstants.mainBackground),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppTheme.primaryBlue,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Text(
-              'Instant Personal Loan',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeaderImage(),
-                _buildTabs(),
-                _selectedTab == _tabApply ? _buildForm() : _buildProductDetails(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeaderImage() {
-    if (_isLoadingHeader) {
-      return Container(
-        height: 180,
-        width: double.infinity,
-        color: Colors.grey[200],
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-
-    if (_headerImageUrl == null || _headerImageUrl!.isEmpty) {
-      return Container(
-        height: 180,
-        width: double.infinity,
-        color: Colors.grey[200],
-        child: Icon(
-          Icons.image_not_supported,
-          color: Colors.grey[400],
-          size: 48,
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 180,
-      width: double.infinity,
-      child: DynamicImage(
-        imageUrl: _headerImageUrl,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-      ),
-    );
-  }
-
-  Widget _buildTabs() {
-    return Container(
-      color: Colors.white,
-      child: Row(
+      body: Column(
         children: [
-          Expanded(
-            child: Material(
-              color: _selectedTab == _tabApply
-                  ? const Color(AppConstants.successColor)
-                  : Colors.white,
-              child: InkWell(
-                onTap: () => setState(() => _selectedTab = _tabApply),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Text(
-                    'APPLY NOW',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _selectedTab == _tabApply
-                          ? Colors.white
-                          : AppTheme.secondaryText,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          CommonNavBar(
+            userName: AppConstants.defaultUserName,
+            showBackButton: true,
+            onBackPressed: () => Navigator.of(context).pop(),
           ),
           Expanded(
-            child: Material(
-              color: _selectedTab == _tabProduct
-                  ? const Color(AppConstants.successColor)
-                  : Colors.white,
-              child: InkWell(
-                onTap: () => setState(() => _selectedTab = _tabProduct),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Text(
-                    'PRODUCT DETAILS',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _selectedTab == _tabProduct
-                          ? Colors.white
-                          : AppTheme.secondaryText,
-                    ),
-                  ),
-                ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildForm(),
+                ],
               ),
             ),
           ),
@@ -352,9 +211,9 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
             color: AppTheme.primaryText,
           ),
         ),
@@ -366,7 +225,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.poppins(color: AppTheme.lightText, fontSize: 14),
+            hintStyle: GoogleFonts.inter(color: AppTheme.lightText, fontSize: 14),
             filled: true,
             fillColor: const Color(AppConstants.mainBackground),
             border: OutlineInputBorder(
@@ -391,7 +250,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          style: GoogleFonts.poppins(fontSize: 15, color: AppTheme.primaryText),
+          style: GoogleFonts.inter(fontSize: 15, color: AppTheme.primaryText),
         ),
       ],
     );
@@ -422,18 +281,18 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.secondaryText, height: 1.4),
+                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.secondaryText, height: 1.4),
                 children: [
                   const TextSpan(text: 'I authorise to securely store & use my data to call/SMS/whatsapp/email me about its products & have accepted the '),
                   TextSpan(
                     text: 'terms',
-                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.primaryBlue, decoration: TextDecoration.underline),
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.primaryBlue, decoration: TextDecoration.underline),
                     recognizer: TapGestureRecognizer()..onTap = () {},
                   ),
                   const TextSpan(text: ' of the '),
                   TextSpan(
                     text: 'privacy policy.',
-                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.primaryBlue, decoration: TextDecoration.underline),
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.primaryBlue, decoration: TextDecoration.underline),
                     recognizer: TapGestureRecognizer()..onTap = () {},
                   ),
                 ],
@@ -451,9 +310,9 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       children: [
         Text(
           'Category',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
             color: AppTheme.primaryText,
           ),
         ),
@@ -473,7 +332,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
               focusedBorder: InputBorder.none,
             ),
             dropdownColor: Colors.white,
-            style: GoogleFonts.poppins(fontSize: 15, color: AppTheme.primaryText),
+            style: GoogleFonts.inter(fontSize: 15, color: AppTheme.primaryText),
             items: _categories.map((category) {
               return DropdownMenuItem<String>(
                 value: category['value'],
@@ -501,7 +360,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     if (!_disclaimerChecked) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please accept the terms and privacy policy', style: GoogleFonts.poppins()),
+          content: Text('Please accept the terms and privacy policy', style: GoogleFonts.inter()),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -538,7 +397,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lead submitted successfully!', style: GoogleFonts.poppins()),
+            content: Text('Lead submitted successfully!', style: GoogleFonts.inter()),
             backgroundColor: AppTheme.success,
           ),
         );
@@ -555,7 +414,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to submit lead. Please try again.', style: GoogleFonts.poppins()),
+            content: Text('Failed to submit lead. Please try again.', style: GoogleFonts.inter()),
             backgroundColor: AppTheme.error,
           ),
         );
@@ -564,7 +423,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An error occurred. Please try again.', style: GoogleFonts.poppins()),
+          content: Text('An error occurred. Please try again.', style: GoogleFonts.inter()),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -600,46 +459,14 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
                 )
               : Text(
                   'SUBMIT',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.inter(
                     fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                     letterSpacing: 0.5,
                   ),
                 ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildProductDetails() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Product Details',
-            style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.primaryText),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '• 100% digital process – no paperwork\n• Instant approval subject to eligibility\n• Loan up to ₹5 Lakh\n• Competitive interest rates',
-            style: GoogleFonts.poppins(fontSize: 14, color: AppTheme.secondaryText, height: 1.6),
-          ),
-        ],
       ),
     );
   }

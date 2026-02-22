@@ -73,7 +73,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           SnackBar(
             content: Text(
               AppConstants.msgProfileUpdated,
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w500),
             ),
             backgroundColor: AppTheme.success,
             behavior: SnackBarBehavior.floating,
@@ -192,7 +192,7 @@ class _PersonalDetailsContentState extends State<PersonalDetailsContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppConstants.msgProfileUpdated, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            content: Text(AppConstants.msgProfileUpdated, style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
             backgroundColor: AppTheme.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -279,7 +279,7 @@ class PersonalDetailsFormCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(AppConstants.secondaryText))),
+        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(AppConstants.secondaryText))),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -293,7 +293,7 @@ class PersonalDetailsFormCard extends StatelessWidget {
             children: [
               Icon(icon, size: 20, color: AppTheme.accentOrange),
               const SizedBox(width: 12),
-              Expanded(child: Text(value, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(AppConstants.primaryText)))),
+              Expanded(child: Text(value, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(AppConstants.primaryText)))),
             ],
           ),
         ),
@@ -305,15 +305,15 @@ class PersonalDetailsFormCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(AppConstants.secondaryText))),
+        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(AppConstants.secondaryText))),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
-          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(AppConstants.primaryText)),
+          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(AppConstants.primaryText)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.poppins(color: const Color(AppConstants.lightText), fontWeight: FontWeight.w500),
+            hintStyle: GoogleFonts.inter(color: const Color(AppConstants.lightText), fontWeight: FontWeight.w500),
             prefixIcon: Icon(icon, size: 20, color: AppTheme.accentOrange),
             filled: true,
             fillColor: const Color(AppConstants.mainBackground),
@@ -344,7 +344,7 @@ class PersonalDetailsFormCard extends StatelessWidget {
             child: Center(
               child: isLoading
                   ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
-                  : Text(AppConstants.labelSubmit, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5)),
+                  : Text(AppConstants.labelSubmit, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: 0.5)),
             ),
           ),
         ),

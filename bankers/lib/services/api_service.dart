@@ -1,9 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import '../config/api_config.dart';
+import '../config/app_config.dart';
 import '../models/otp_models.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
@@ -12,7 +11,7 @@ class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  static String get _base => ApiConfig.baseUrl;
+  static String get _base => AppConfig.baseUrl;
 
   static const _jsonHeaders = {'Content-Type': 'application/json'};
 
@@ -228,16 +227,4 @@ class ApiService {
     return json != null && json['success'] == true;
   }
 
-  Future<List<Map<String, dynamic>>> getBanners({String? category}) async {
-    final path = category != null ? '/banners/category/$category' : '/banners';
-    final json = await _get(path);
-    if (json == null || json['success'] != true) {
-      return [];
-    }
-    final data = json['data'];
-    if (data is List) {
-      return data.cast<Map<String, dynamic>>();
-    }
-    return [];
-  }
 }

@@ -31,9 +31,9 @@ class OtpInputField extends StatelessWidget {
         keyboardType: TextInputType.number,
         maxLength: 1,
         enabled: enabled,
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.inter(
           fontSize: 26,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: AppTheme.accentOrange,
           letterSpacing: 2,
         ),

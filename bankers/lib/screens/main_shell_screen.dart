@@ -9,6 +9,7 @@ import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/drawer_menu_item.dart';
 import '../widgets/user_qr_code_widget.dart';
+import 'add_lead_screen.dart';
 import 'dashboard_screen.dart';
 import 'leads_screen.dart';
 import 'personal_details_screen.dart';
@@ -127,9 +128,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   children: [
                     Text(
                       AppConstants.labelProfile,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 24,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: AppTheme.darkBlue,
                       ),
                     ),
@@ -220,6 +221,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       case 0:
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
+          onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
         );
       case 1:
         return const LeadsContent();
@@ -232,6 +234,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       default:
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
+          onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
         );
     }
   }

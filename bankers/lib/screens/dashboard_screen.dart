@@ -6,12 +6,13 @@ import '../utils/user_prefs_helper.dart';
 import '../utils/page_routes.dart';
 import '../theme/app_theme.dart';
 import '../widgets/user_qr_code_widget.dart';
+import '../config/app_config.dart';
 import '../widgets/carousel_banner.dart';
-import '../widgets/dynamic_image.dart';
+import '../widgets/app_image.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/drawer_menu_item.dart';
-import '../services/api_service.dart';
+import 'add_lead_screen.dart';
 import 'personal_details_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -33,77 +34,11 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  List<String> _bannerUrls = [];
-  String? _kycBannerUrl;
-  Map<String, String?> _categoryPromoUrls = {};
-  bool _isLoadingBanners = true;
-  bool _isLoadingKyc = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBanners();
-    _loadKycBanner();
-    _loadCategoryPromos();
-  }
-
-  Future<void> _loadCategoryPromos() async {
-    const categories = ['personal_loan', 'credit_card', 'insurance'];
-    final Map<String, String?> promos = {};
-    for (final cat in categories) {
-      try {
-        final list = await ApiService.instance.getBanners(category: cat);
-        promos[cat] = list.isNotEmpty ? (list.first['imageUrl'] as String? ?? '') : null;
-        if (promos[cat] != null && (promos[cat] ?? '').isEmpty) promos[cat] = null;
-      } catch (_) {
-        promos[cat] = null;
-      }
-    }
-    if (mounted) setState(() => _categoryPromoUrls = promos);
-  }
-
-  Future<void> _loadBanners() async {
-    try {
-      final bannersData = await ApiService.instance.getBanners(category: 'carousel');
-      if (mounted) {
-        setState(() {
-          _bannerUrls = bannersData
-              .map((banner) => banner['imageUrl'] as String? ?? '')
-              .where((url) => url.isNotEmpty)
-              .toList();
-          _isLoadingBanners = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _bannerUrls = [];
-          _isLoadingBanners = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadKycBanner() async {
-    try {
-      final kycBanners = await ApiService.instance.getBanners(category: 'kyc');
-      if (mounted) {
-        setState(() {
-          _kycBannerUrl = kycBanners.isNotEmpty
-              ? (kycBanners.first['imageUrl'] as String? ?? '')
-              : null;
-          _isLoadingKyc = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _kycBannerUrl = null;
-          _isLoadingKyc = false;
-        });
-      }
-    }
-  }
+  static Map<String, String> get _categoryPromoUrls => {
+    'personal_loan': AppConfig.personalLoanPromo,
+    'credit_card': AppConfig.creditCardPromo,
+    'insurance': AppConfig.insurancePromo,
+  };
 
   void _openPersonalDetails(BuildContext context) {
     Navigator.of(context).pop();
@@ -186,9 +121,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       AppConstants.labelProfile,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 24,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: AppTheme.darkBlue,
                       ),
                     ),
@@ -284,11 +219,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: _DashboardBodyBuilder(
               onShare: _showShareOptions,
-              bannerUrls: _bannerUrls,
-              isLoadingBanners: _isLoadingBanners,
-              kycBannerUrl: _kycBannerUrl,
-              isLoadingKyc: _isLoadingKyc,
-              categoryPromoUrls: _categoryPromoUrls,
+              onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
+              carouselPaths: AppConfig.carousel,
+              kycBannerPath: AppConfig.kycBanner,
+              categoryPromoPaths: _categoryPromoUrls,
             ),
           ),
         ],
@@ -339,9 +273,9 @@ class _ShareSheetContent extends StatelessWidget {
           ),
           Text(
             AppConstants.shareTitlePersonalLoan,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppTheme.darkBlue,
             ),
           ),
@@ -421,9 +355,9 @@ class _ShareSheetContent extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: AppTheme.primaryText,
             ),
           ),
@@ -436,95 +370,33 @@ class _ShareSheetContent extends StatelessWidget {
 /// Body-only for shell (no nav/footer). Uses same content as dashboard.
 class DashboardBody extends StatefulWidget {
   final VoidCallback onSharePersonalLoan;
+  final VoidCallback? onAddLeadTap;
 
-  const DashboardBody({super.key, required this.onSharePersonalLoan});
+  const DashboardBody({
+    super.key,
+    required this.onSharePersonalLoan,
+    this.onAddLeadTap,
+  });
 
   @override
   State<DashboardBody> createState() => _DashboardBodyState();
 }
 
 class _DashboardBodyState extends State<DashboardBody> {
-  List<String> _bannerUrls = [];
-  String? _kycBannerUrl;
-  Map<String, String?> _categoryPromoUrls = {};
-  bool _isLoadingBanners = true;
-  bool _isLoadingKyc = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBanners();
-    _loadKycBanner();
-    _loadCategoryPromos();
-  }
-
-  Future<void> _loadCategoryPromos() async {
-    const categories = ['personal_loan', 'credit_card', 'insurance'];
-    final Map<String, String?> promos = {};
-    for (final cat in categories) {
-      try {
-        final list = await ApiService.instance.getBanners(category: cat);
-        promos[cat] = list.isNotEmpty ? (list.first['imageUrl'] as String? ?? '') : null;
-        if (promos[cat] != null && (promos[cat] ?? '').isEmpty) promos[cat] = null;
-      } catch (_) {
-        promos[cat] = null;
-      }
-    }
-    if (mounted) setState(() => _categoryPromoUrls = promos);
-  }
-
-  Future<void> _loadBanners() async {
-    try {
-      final bannersData = await ApiService.instance.getBanners(category: 'carousel');
-      if (mounted) {
-        setState(() {
-          _bannerUrls = bannersData
-              .map((banner) => banner['imageUrl'] as String? ?? '')
-              .where((url) => url.isNotEmpty)
-              .toList();
-          _isLoadingBanners = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _bannerUrls = [];
-          _isLoadingBanners = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadKycBanner() async {
-    try {
-      final kycBanners = await ApiService.instance.getBanners(category: 'kyc');
-      if (mounted) {
-        setState(() {
-          _kycBannerUrl = kycBanners.isNotEmpty
-              ? (kycBanners.first['imageUrl'] as String? ?? '')
-              : null;
-          _isLoadingKyc = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _kycBannerUrl = null;
-          _isLoadingKyc = false;
-        });
-      }
-    }
-  }
+  static Map<String, String> get _categoryPromoPaths => {
+    'personal_loan': AppConfig.personalLoanPromo,
+    'credit_card': AppConfig.creditCardPromo,
+    'insurance': AppConfig.insurancePromo,
+  };
 
   @override
   Widget build(BuildContext context) {
     return _DashboardBodyBuilder(
       onShare: widget.onSharePersonalLoan,
-      bannerUrls: _bannerUrls,
-      isLoadingBanners: _isLoadingBanners,
-      kycBannerUrl: _kycBannerUrl,
-      isLoadingKyc: _isLoadingKyc,
-      categoryPromoUrls: _categoryPromoUrls,
+      onAddLeadTap: widget.onAddLeadTap,
+      carouselPaths: AppConfig.carousel,
+      kycBannerPath: AppConfig.kycBanner,
+      categoryPromoPaths: _categoryPromoPaths,
     );
   }
 }
@@ -563,19 +435,17 @@ class _HorizontalScrollWithBarState extends State<_HorizontalScrollWithBar> {
 
 class _DashboardBodyBuilder extends StatelessWidget {
   final VoidCallback onShare;
-  final List<String> bannerUrls;
-  final bool isLoadingBanners;
-  final String? kycBannerUrl;
-  final bool isLoadingKyc;
-  final Map<String, String?> categoryPromoUrls;
+  final VoidCallback? onAddLeadTap;
+  final List<String> carouselPaths;
+  final String kycBannerPath;
+  final Map<String, String> categoryPromoPaths;
 
   const _DashboardBodyBuilder({
     required this.onShare,
-    this.bannerUrls = const [],
-    this.isLoadingBanners = false,
-    this.kycBannerUrl,
-    this.isLoadingKyc = false,
-    this.categoryPromoUrls = const <String, String?>{},
+    this.onAddLeadTap,
+    this.carouselPaths = const [],
+    required this.kycBannerPath,
+    this.categoryPromoPaths = const {},
   });
 
   @override
@@ -608,57 +478,44 @@ class _DashboardBodyBuilder extends StatelessWidget {
   }
 
   Widget _buildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow) {
-    return _copyOfBuildBalanceCard(primaryDark, primary, accentOrange, yellow);
+    return _copyOfBuildBalanceCard(primaryDark, primary, accentOrange, yellow, onAddLeadTap);
   }
 
   Widget _buildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark) {
-    return _copyOfBuildSellAndEarnSection(primary, accentOrange, primaryDark, categoryPromoUrls);
+    return _copyOfBuildSellAndEarnSection(primary, accentOrange, primaryDark, categoryPromoPaths, onAddLeadTap ?? onShare);
   }
 
   Widget _buildKYCBanner(Color darkBlue, Color accentOrange) {
-    return _copyOfBuildKYCBanner(darkBlue, accentOrange, kycBannerUrl, isLoadingKyc);
+    return _copyOfBuildKYCBanner(darkBlue, accentOrange, kycBannerPath);
   }
 
-
   Widget _buildCarouselBanner() {
-    if (bannerUrls.isNotEmpty) {
+    if (carouselPaths.isNotEmpty) {
       return CarouselBanner(
-        imageUrls: bannerUrls,
-        height: 120,
+        assetPaths: carouselPaths,
         autoScrollDuration: const Duration(seconds: 4),
       );
     }
-    if (isLoadingBanners) {
-      return Container(
-        height: 120,
+    return AspectRatio(
+      aspectRatio: 3 / 1,
+      child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    return Container(
-      height: 120,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(
-          'No banners',
-          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+        child: Center(
+          child: Text(
+            'No banners',
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          ),
         ),
       ),
     );
   }
 
 
-  static Widget _copyOfBuildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow) {
+  static Widget _copyOfBuildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow, VoidCallback? onAddLeadTap) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -683,21 +540,24 @@ class _DashboardBodyBuilder extends StatelessWidget {
                 child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 24),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [accentOrange, accentOrange.withOpacity(0.8)]),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [BoxShadow(color: accentOrange.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+              GestureDetector(
+                onTap: onAddLeadTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [accentOrange, accentOrange.withOpacity(0.8)]),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [BoxShadow(color: accentOrange.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Text('ADD LEAD', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white, letterSpacing: 0.5)),
                 ),
-                child: Text('ADD LEAD', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5)),
               ),
             ],
           ),
           const SizedBox(height: 18),
-          Text('Balance', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
+          Text('Balance', style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
-          Text('₹0.00', style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.8)),
+          Text('₹0.00', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: 0.8)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.only(top: 14),
@@ -705,8 +565,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total Earning', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
-                Text('₹0.00', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text('Total Earning', style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
+                Text('₹0.00', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
               ],
             ),
           ),
@@ -715,14 +575,14 @@ class _DashboardBodyBuilder extends StatelessWidget {
     );
   }
 
-  Widget _copyOfBuildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark, Map<String, String?> categoryPromoUrls) {
+  Widget _copyOfBuildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark, Map<String, String> categoryPromoPaths, VoidCallback onCardTap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, accentOrange.withOpacity(0.3), Colors.transparent])))),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('SELL & EARN', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: accentOrange, letterSpacing: 1))),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('SELL & EARN', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: accentOrange, letterSpacing: 1))),
             Expanded(child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, accentOrange.withOpacity(0.3), Colors.transparent])))),
           ],
         ),
@@ -732,9 +592,9 @@ class _DashboardBodyBuilder extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onShare, promoImageUrl: categoryPromoUrls['personal_loan']))),
-              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2), promoImageUrl: categoryPromoUrls['credit_card']))),
-              Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2), promoImageUrl: categoryPromoUrls['insurance']))),
+              Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+              Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
             ],
           ),
         ),
@@ -742,8 +602,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard({required IconData icon, required String title, required String subtitle, required Color iconColor, required Color bottomColor, VoidCallback? onTap, String? promoImageUrl}) {
-    final hasPromoImage = promoImageUrl != null && promoImageUrl.isNotEmpty;
+  Widget _buildServiceCard({required IconData icon, required String title, required String subtitle, required Color iconColor, required Color bottomColor, VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -774,16 +633,9 @@ class _DashboardBodyBuilder extends StatelessWidget {
                       child: Icon(icon, color: iconColor, size: 28),
                     ),
                     const Spacer(),
-                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.primaryText)),
+                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.primaryText)),
                     const SizedBox(height: 2),
-                    if (hasPromoImage)
-                      SizedBox(
-                        height: 26,
-                        width: double.infinity,
-                        child: DynamicImage(imageUrl: promoImageUrl, fit: BoxFit.contain),
-                      )
-                    else
-                      Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.accentOrange)),
+                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.accentOrange)),
                   ],
                 ),
               ),
@@ -804,8 +656,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
   static Widget _copyOfBuildKYCBanner(
     Color darkBlue,
     Color accentOrange,
-    String? kycBannerUrl,
-    bool isLoadingKyc,
+    String kycBannerPath,
   ) {
     return Container(
       width: double.infinity,
@@ -823,17 +674,12 @@ class _DashboardBodyBuilder extends StatelessWidget {
             child: SizedBox(
               width: 64,
               height: 64,
-              child: isLoadingKyc
-                  ? Container(
-                      color: Colors.grey[200],
-                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                    )
-                  : DynamicImage(
-                      imageUrl: kycBannerUrl,
-                      width: 64,
-                      height: 64,
-                      fit: BoxFit.cover,
-                    ),
+              child: AppImage(
+                assetPath: kycBannerPath,
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -841,9 +687,9 @@ class _DashboardBodyBuilder extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Complete Your KYC', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: darkBlue)),
+                Text('Complete Your KYC', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: darkBlue)),
                 const SizedBox(height: 4),
-                Text('check leads Now!', style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.secondaryText, fontWeight: FontWeight.w500)),
+                Text('check leads Now!', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.secondaryText, fontWeight: FontWeight.w500)),
               ],
             ),
           ),

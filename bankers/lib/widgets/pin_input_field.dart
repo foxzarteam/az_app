@@ -32,9 +32,9 @@ class PinInputField extends StatelessWidget {
         maxLength: 1,
         obscureText: true,
         enabled: enabled,
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.inter(
           fontSize: 26,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: AppTheme.accentOrange,
           letterSpacing: 2,
         ),

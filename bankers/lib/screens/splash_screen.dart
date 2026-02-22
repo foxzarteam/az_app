@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
-import '../utils/app_images.dart';
+import '../config/app_config.dart';
 import '../services/api_service.dart';
 import 'signup_screen.dart';
 import 'mpin_login_screen.dart';
@@ -154,7 +154,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     if (!_imagePrecached) {
       _imagePrecached = true;
-      precacheImage(AssetImage(AppImages.splashLogo), context);
+      precacheImage(AssetImage(AppConfig.splashLogo), context);
     }
     final size = MediaQuery.of(context).size;
     const primaryDark = Color(AppConstants.primaryColorDark);
@@ -218,7 +218,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           child: Padding(
                             padding: const EdgeInsets.all(10),
                             child: Image.asset(
-                              AppImages.splashLogo,
+                              AppConfig.splashLogo,
                               width: 100,
                               height: 100,
                               fit: BoxFit.cover,
@@ -238,32 +238,54 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ],
                   ),
                   const SizedBox(height: 40),
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [Colors.white, Colors.white.withOpacity(0.9)],
-                    ).createShader(bounds),
-                    child: Text(
-                      'Apni Zaroorat',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 42,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        height: 1.2,
-                        shadows: [
-                          Shadow(
-                            color: primary.withOpacity(0.8),
-                            offset: const Offset(0, 4),
-                            blurRadius: 20,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [Colors.white, Colors.white.withOpacity(0.9)],
+                        ).createShader(bounds),
+                        child: Text(
+                          '${AppConstants.appName.split(' ')[0]} ',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 42,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 2,
+                            height: 1.2,
+                            shadows: [
+                              Shadow(
+                                color: primary.withOpacity(0.8),
+                                offset: const Offset(0, 4),
+                                blurRadius: 20,
+                              ),
+                              Shadow(
+                                color: orange.withOpacity(0.6),
+                                offset: const Offset(0, 2),
+                                blurRadius: 15,
+                              ),
+                            ],
                           ),
-                          Shadow(
-                            color: orange.withOpacity(0.6),
-                            offset: const Offset(0, 2),
-                            blurRadius: 15,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      Text(
+                        AppConstants.appName.split(' ')[1],
+                        style: GoogleFonts.inter(
+                          color: const Color(AppConstants.accentColor),
+                          fontSize: 42,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2,
+                          height: 1.2,
+                          shadows: [
+                            Shadow(
+                              color: primary.withOpacity(0.5),
+                              offset: const Offset(0, 2),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 60),
                   SizedBox(

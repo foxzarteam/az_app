@@ -338,9 +338,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                       delay: const Duration(milliseconds: 200),
                                       child: Text(
                                         AppConstants.msgVerifyOtp,
-                                        style: GoogleFonts.poppins(
+                                        style: GoogleFonts.inter(
                                           fontSize: 32,
-                                          fontWeight: FontWeight.w800,
+                                          fontWeight: FontWeight.w500,
                                           color: Colors.white,
                                           letterSpacing: 0.5,
                                         ),
@@ -354,7 +354,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                         children: [
                                           Text(
                                             'Enter the OTP sent to',
-                                            style: GoogleFonts.poppins(
+                                            style: GoogleFonts.inter(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w400,
                                               color: Colors.white.withOpacity(0.9),
@@ -363,9 +363,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                           const SizedBox(height: 4),
                                           Text(
                                             '+91 ${widget.mobileNumber}',
-                                            style: GoogleFonts.poppins(
+                                            style: GoogleFonts.inter(
                                               fontSize: 18,
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight: FontWeight.w500,
                                               color: yellow,
                                               letterSpacing: 0.5,
                                             ),
@@ -417,9 +417,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                               keyboardType: TextInputType.number,
                                               maxLength: 1,
                                               enabled: !_isLoading,
-                                              style: GoogleFonts.poppins(
+                                              style: GoogleFonts.inter(
                                                 fontSize: 26,
-                                                fontWeight: FontWeight.w700,
+                                                fontWeight: FontWeight.w500,
                                                 color: accentOrange,
                                                 letterSpacing: 2,
                                               ),
@@ -497,7 +497,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                         children: [
                                           Text(
                                             AppConstants.msgDidntReceiveOtp,
-                                            style: GoogleFonts.poppins(
+                                            style: GoogleFonts.inter(
                                               fontSize: 14,
                                               color: const Color(AppConstants.secondaryText),
                                             ),
@@ -508,9 +508,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                               _resendCooldown > 0
                                                   ? 'Resend (${_resendCooldown}s)'
                                                   : AppConstants.msgResendOtp,
-                                              style: GoogleFonts.poppins(
+                                              style: GoogleFonts.inter(
                                                 fontSize: 14,
-                                                fontWeight: FontWeight.w700,
+                                                fontWeight: FontWeight.w500,
                                                 color: _resendCooldown > 0
                                                     ? const Color(AppConstants.lightText)
                                                     : accentOrange,
