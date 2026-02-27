@@ -1,15 +1,115 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/app_config.dart';
+import '../services/api_service.dart';
 import '../utils/constants.dart';
+import '../utils/user_prefs_helper.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/app_image.dart';
 import 'add_lead_screen.dart';
+import 'lead_list_screen.dart';
 
 /// Content-only widget for Leads (no nav/footer). Used by MainShellScreen.
-class LeadsContent extends StatelessWidget {
+class LeadsContent extends StatefulWidget {
   const LeadsContent({super.key});
+
+  @override
+  State<LeadsContent> createState() => _LeadsContentState();
+}
+
+class _LeadsContentState extends State<LeadsContent> {
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _leads = const [];
+
+  int get _successCount =>
+      _leads.where((l) => (l['status'] as String?) == 'approved').length;
+  int get _inProcessCount => _leads
+      .where(
+        (l) =>
+            (l['status'] as String?) == 'pending' ||
+            (l['status'] as String?) == 'in_process',
+      )
+      .length;
+  int get _rejectedCount =>
+      _leads.where((l) => (l['status'] as String?) == 'rejected').length;
+  int get _actionRequiredCount =>
+      _leads.where((l) => (l['status'] as String?) == 'action_required').length;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLeads();
+  }
+
+  Future<void> _loadLeads() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final details = await UserPrefsHelper.getUserDetails();
+      final mobile = details['mobile'] ?? '';
+      if (mobile.isEmpty || mobile == AppConstants.defaultMaskedMobile) {
+        setState(() {
+          _leads = const [];
+          _isLoading = false;
+        });
+        return;
+      }
+      final user = await ApiService.instance.getUserByMobile(mobile);
+      final userId = user?['id']?.toString();
+      if (userId == null || userId.isEmpty) {
+        setState(() {
+          _leads = const [];
+          _isLoading = false;
+        });
+        return;
+      }
+      final leads = await ApiService.instance.getLeadsByUserId(userId);
+      if (!mounted) return;
+      setState(() {
+        _leads = leads;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _leads = const [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _openLeadList(
+    BuildContext context, {
+    required String title,
+    String? statusFilter,
+  }) {
+    List<Map<String, dynamic>> filtered;
+    if (statusFilter == null) {
+      filtered = _leads;
+    } else if (statusFilter == 'in_process') {
+      filtered = _leads
+          .where(
+            (l) =>
+                (l['status'] as String?) == 'in_process' ||
+                (l['status'] as String?) == 'pending',
+          )
+          .toList();
+    } else {
+      filtered = _leads
+          .where((l) => (l['status'] as String?) == statusFilter)
+          .toList();
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LeadListScreen(
+          title: title,
+          leads: filtered,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +198,8 @@ class LeadsContent extends StatelessWidget {
                 color: Colors.white.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(20),
                 child: InkWell(
-                  onTap: () {},
+                  onTap: () =>
+                      _openLeadList(context, title: AppConstants.labelTotalAddedLeads),
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -128,36 +229,56 @@ class LeadsContent extends StatelessWidget {
               Expanded(
                 child: _buildLeadStatusChip(
                   AppConstants.labelSuccess,
-                  0,
+                  _successCount,
                   const Color(AppConstants.successColor),
                   Icons.check_rounded,
+                  () => _openLeadList(
+                    context,
+                    title: AppConstants.labelSuccess,
+                    statusFilter: 'approved',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildLeadStatusChip(
                   AppConstants.labelInProcess,
-                  0,
+                  _inProcessCount,
                   const Color(0xFF2563EB),
                   Icons.refresh_rounded,
+                  () => _openLeadList(
+                    context,
+                    title: AppConstants.labelInProcess,
+                    statusFilter: 'pending',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildLeadStatusChip(
                   AppConstants.labelRejected,
-                  0,
+                  _rejectedCount,
                   const Color(AppConstants.errorColor),
                   Icons.close_rounded,
+                  () => _openLeadList(
+                    context,
+                    title: AppConstants.labelRejected,
+                    statusFilter: 'rejected',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildLeadStatusChip(
                   AppConstants.labelActionRequired,
-                  null,
+                  _actionRequiredCount,
                   const Color(AppConstants.warningColor),
                   Icons.warning_amber_rounded,
+                  () => _openLeadList(
+                    context,
+                    title: AppConstants.labelActionRequired,
+                    statusFilter: 'action_required',
+                  ),
                 ),
               ),
             ],
@@ -167,56 +288,67 @@ class LeadsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildLeadStatusChip(String label, int? count, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(AppConstants.cardBackground),
+  Widget _buildLeadStatusChip(
+    String label,
+    int count,
+    Color color,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: _isLoading || count == 0 ? null : onTap,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(height: 10),
-          if (count != null)
-            Text(
-              '$count',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: const Color(AppConstants.primaryText),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            color: const Color(AppConstants.cardBackground),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-            )
-          else
-            const SizedBox(height: 22),
-          if (count != null) const SizedBox(height: 2),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: const Color(AppConstants.secondaryText),
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            ],
           ),
-        ],
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                _isLoading ? '-' : '$count',
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(AppConstants.primaryText),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(AppConstants.secondaryText),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -318,10 +450,13 @@ class LeadsContent extends StatelessWidget {
       shadowColor: accentOrange.withOpacity(0.5),
       elevation: 8,
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          await Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const AddLeadScreen()),
           );
+          if (mounted) {
+            _loadLeads();
+          }
         },
         borderRadius: BorderRadius.circular(28),
         child: Container(

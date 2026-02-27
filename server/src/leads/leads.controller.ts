@@ -30,6 +30,22 @@ export class LeadsController {
         console.log('LeadsController.create - Mobile:', dto.mobileNumber);
         console.log('LeadsController.create - Category:', dto.category);
       }
+      // Reject duplicate active lead for same mobile number
+      const duplicateCheck = await this.leadsService
+        .getByUserId(dto.userId ?? '')
+        .catch(() => [] as Record<string, unknown>[]);
+
+      if (
+        duplicateCheck.some(
+          (l) => (l['mobile_number'] as string | undefined)?.trim() === dto.mobileNumber.trim(),
+        )
+      ) {
+        return {
+          success: false,
+          message: 'This lead already exists in our system.',
+        };
+      }
+
       const lead = await this.leadsService.create(dto);
       if (!lead) {
         if (process.env.NODE_ENV !== 'production') {

@@ -32,8 +32,31 @@ const List<LeadProvider> _providers = [
   ),
 ];
 
-class AddLeadScreen extends StatelessWidget {
+class AddLeadScreen extends StatefulWidget {
   const AddLeadScreen({super.key});
+
+  @override
+  State<AddLeadScreen> createState() => _AddLeadScreenState();
+}
+
+class _AddLeadScreenState extends State<AddLeadScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shineController;
+
+  @override
+  void initState() {
+    super.initState();
+    _shineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shineController.dispose();
+    super.dispose();
+  }
 
   static void _openLeadForm(BuildContext context) {
     Navigator.of(context).push(
@@ -94,41 +117,87 @@ class AddLeadScreen extends StatelessWidget {
       child: InkWell(
         onTap: () => _openLeadForm(context),
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryBlueDark,
-                AppTheme.primaryBlue,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedBuilder(
+            animation: _shineController,
+            builder: (context, child) {
+              final t = Curves.easeInOut.transform(_shineController.value);
+              final alignment = Alignment(-1.2 + 2.4 * t, 0);
+              return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  AppConstants.buttonAddLeadManually,
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryBlueDark,
+                      AppTheme.primaryBlue,
+                    ],
                   ),
                 ),
-              ),
-            ],
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add_rounded,
+                                color: Colors.white, size: 24),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              AppConstants.buttonAddLeadManually,
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Soft shine overlay, slow and continuous
+                    IgnorePointer(
+                      ignoring: true,
+                      child: Align(
+                        alignment: alignment,
+                        child: Transform.rotate(
+                          angle: -0.35,
+                          child: FractionallySizedBox(
+                            widthFactor: 0.25,
+                            child: Container(
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.white.withOpacity(0.0),
+                                    Colors.white.withOpacity(0.16),
+                                    Colors.white.withOpacity(0.0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -259,11 +328,7 @@ class _ProviderCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.yellow, AppTheme.accentOrange],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
+                      color: AppTheme.accentOrange,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(

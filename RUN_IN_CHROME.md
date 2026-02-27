@@ -4,7 +4,7 @@
 
 1. **Terminal खोलें** और root directory में जाएं:
    ```bash
-   cd D:\apnizaroorat
+   cd D:\az_app
    ```
 npm install
 
@@ -28,7 +28,7 @@ npm install
 
 1. **Bankers folder में जाएं**:
    ```bash
-   cd D:\apnizaroorat\bankers
+   cd D:\az_app\bankers
    ```
 
 2. **Dependencies install करें** (अगर पहले नहीं किया):
@@ -57,13 +57,13 @@ npm install
 
 **Terminal 1** (Backend):
 ```bash
-cd D:\apnizaroorat\server
+cd D:\az_app\server
 npm run start:dev
 ```
 
 **Terminal 2** (Flutter):
 ```bash
-cd D:\apnizaroorat\bankers
+cd D:\az_app\bankers
 flutter run -d chrome
 ```
 

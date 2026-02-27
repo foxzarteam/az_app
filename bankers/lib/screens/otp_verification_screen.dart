@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../utils/constants.dart';
@@ -308,69 +307,44 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    FadeInDown(
-                                      duration: const Duration(milliseconds: 600),
-                                      child: Container(
-                                        width: 100,
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: accentOrange.withOpacity(0.4),
-                                              blurRadius: 30,
-                                              offset: const Offset(0, 10),
-                                              spreadRadius: 5,
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.verified_user_rounded,
-                                          color: primaryBlue,
-                                          size: 50,
-                                        ),
+                                    Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: accentOrange.withOpacity(0.4),
+                                            blurRadius: 30,
+                                            offset: const Offset(0, 10),
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.verified_user_rounded,
+                                        color: primaryBlue,
+                                        size: 50,
                                       ),
                                     ),
                                     const SizedBox(height: 24),
-                                    FadeInUp(
-                                      duration: const Duration(milliseconds: 600),
-                                      delay: const Duration(milliseconds: 200),
-                                      child: Text(
-                                        AppConstants.msgVerifyOtp,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white,
-                                          letterSpacing: 0.5,
-                                        ),
+                                    Text(
+                                      AppConstants.msgVerifyOtp,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
                                     const SizedBox(height: 12),
-                                    FadeInUp(
-                                      duration: const Duration(milliseconds: 600),
-                                      delay: const Duration(milliseconds: 400),
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            'Enter the OTP sent to',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w400,
-                                              color: Colors.white.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '+91 ${widget.mobileNumber}',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w500,
-                                              color: yellow,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                        ],
+                                    Text(
+                                      'Enter the OTP sent to your mobile',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white.withOpacity(0.9),
                                       ),
                                     ),
                                   ],
@@ -401,67 +375,63 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     const SizedBox(height: 24),
-                                    FadeInUp(
-                                      duration: const Duration(milliseconds: 800),
-                                      delay: const Duration(milliseconds: 200),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: List.generate(AppConstants.otpLength, (index) {
-                                          return SizedBox(
-                                            width: 65,
-                                            height: 65,
-                                            child: TextField(
-                                              controller: _otpControllers[index],
-                                              focusNode: _focusNodes[index],
-                                              textAlign: TextAlign.center,
-                                              keyboardType: TextInputType.number,
-                                              maxLength: 1,
-                                              enabled: !_isLoading,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 26,
-                                                fontWeight: FontWeight.w500,
-                                                color: accentOrange,
-                                                letterSpacing: 2,
-                                              ),
-                                              decoration: InputDecoration(
-                                                counterText: '',
-                                                filled: true,
-                                                fillColor: _errorMessage != null
-                                                    ? const Color(AppConstants.errorColor).withOpacity(0.05)
-                                                    : const Color(AppConstants.mainBackground),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: _errorMessage != null
-                                                        ? const Color(AppConstants.errorColor)
-                                                        : accentOrange.withOpacity(0.3),
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: _errorMessage != null
-                                                        ? const Color(AppConstants.errorColor)
-                                                        : accentOrange.withOpacity(0.3),
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: _errorMessage != null
-                                                        ? const Color(AppConstants.errorColor)
-                                                        : accentOrange,
-                                                    width: 3,
-                                                  ),
-                                                ),
-                                              ),
-                                              onChanged: (value) => _onOtpChanged(index, value),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: List.generate(AppConstants.otpLength, (index) {
+                                        return SizedBox(
+                                          width: 65,
+                                          height: 65,
+                                          child: TextField(
+                                            controller: _otpControllers[index],
+                                            focusNode: _focusNodes[index],
+                                            textAlign: TextAlign.center,
+                                            keyboardType: TextInputType.number,
+                                            maxLength: 1,
+                                            enabled: !_isLoading,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 26,
+                                              fontWeight: FontWeight.w500,
+                                              color: accentOrange,
+                                              letterSpacing: 2,
                                             ),
-                                          );
-                                        }),
-                                      ),
+                                            decoration: InputDecoration(
+                                              counterText: '',
+                                              filled: true,
+                                              fillColor: _errorMessage != null
+                                                  ? const Color(AppConstants.errorColor).withOpacity(0.05)
+                                                  : const Color(AppConstants.mainBackground),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(18),
+                                                borderSide: BorderSide(
+                                                  color: _errorMessage != null
+                                                      ? const Color(AppConstants.errorColor)
+                                                      : accentOrange.withOpacity(0.3),
+                                                  width: 2,
+                                                ),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(18),
+                                                borderSide: BorderSide(
+                                                  color: _errorMessage != null
+                                                      ? const Color(AppConstants.errorColor)
+                                                      : accentOrange.withOpacity(0.3),
+                                                  width: 2,
+                                                ),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(18),
+                                                borderSide: BorderSide(
+                                                  color: _errorMessage != null
+                                                      ? const Color(AppConstants.errorColor)
+                                                      : accentOrange,
+                                                  width: 3,
+                                                ),
+                                              ),
+                                            ),
+                                            onChanged: (value) => _onOtpChanged(index, value),
+                                          ),
+                                        );
+                                      }),
                                     ),
 
                                     const SizedBox(height: 32),
@@ -473,55 +443,45 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                         ),
                                       )
                                     else if (_errorMessage != null)
-                                      FadeInUp(
-                                        duration: const Duration(milliseconds: 300),
-                                        child: MessageBanner(
-                                          message: _errorMessage!,
-                                          type: MessageBannerType.error,
-                                        ),
+                                      MessageBanner(
+                                        message: _errorMessage!,
+                                        type: MessageBannerType.error,
                                       )
                                     else if (_successMessage != null)
-                                      FadeInUp(
-                                        duration: const Duration(milliseconds: 300),
-                                        child: MessageBanner(
-                                          message: _successMessage!,
-                                          type: MessageBannerType.success,
-                                        ),
+                                      MessageBanner(
+                                        message: _successMessage!,
+                                        type: MessageBannerType.success,
                                       ),
                                     const SizedBox(height: 24),
-                                    FadeInUp(
-                                      duration: const Duration(milliseconds: 900),
-                                      delay: const Duration(milliseconds: 400),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            AppConstants.msgDidntReceiveOtp,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          AppConstants.msgDidntReceiveOtp,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: const Color(AppConstants.secondaryText),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _resendCooldown > 0 ? null : _resendOTP,
+                                          child: Text(
+                                            _resendCooldown > 0
+                                                ? 'Resend (${_resendCooldown}s)'
+                                                : AppConstants.msgResendOtp,
                                             style: GoogleFonts.inter(
                                               fontSize: 14,
-                                              color: const Color(AppConstants.secondaryText),
+                                              fontWeight: FontWeight.w500,
+                                              color: _resendCooldown > 0
+                                                  ? const Color(AppConstants.lightText)
+                                                  : accentOrange,
+                                              decoration: _resendCooldown > 0
+                                                  ? TextDecoration.none
+                                                  : TextDecoration.underline,
                                             ),
                                           ),
-                                          GestureDetector(
-                                            onTap: _resendCooldown > 0 ? null : _resendOTP,
-                                            child: Text(
-                                              _resendCooldown > 0
-                                                  ? 'Resend (${_resendCooldown}s)'
-                                                  : AppConstants.msgResendOtp,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                                color: _resendCooldown > 0
-                                                    ? const Color(AppConstants.lightText)
-                                                    : accentOrange,
-                                                decoration: _resendCooldown > 0
-                                                    ? TextDecoration.none
-                                                    : TextDecoration.underline,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                     SizedBox(height: keyboardHeight > 0 ? 20 : 0),
                                   ],

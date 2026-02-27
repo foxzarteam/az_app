@@ -22,7 +22,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _pincodeController = TextEditingController();
-  final _amountController = TextEditingController();
   bool _disclaimerChecked = false;
   String _selectedCategory = 'personal_loan';
   bool _isSubmitting = false;
@@ -40,7 +39,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     _fullNameController.dispose();
     _emailController.dispose();
     _pincodeController.dispose();
-    _amountController.dispose();
     super.dispose();
   }
 
@@ -164,22 +162,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
                   if (value != null && value.trim().isNotEmpty) {
                     if (value.length != 6 || !RegExp(r'^\d{6}$').hasMatch(value)) {
                       return 'Pincode must be 6 digits';
-                    }
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildField(
-                'Required amount',
-                _amountController,
-                hint: 'e.g. 100000',
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value != null && value.trim().isNotEmpty) {
-                    final amount = double.tryParse(value);
-                    if (amount == null || amount <= 0) {
-                      return 'Enter valid amount';
                     }
                   }
                   return null;
@@ -387,7 +369,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         fullName: _fullNameController.text.trim(),
         email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
         pincode: _pincodeController.text.trim().isEmpty ? null : _pincodeController.text.trim(),
-        requiredAmount: _amountController.text.trim().isEmpty ? null : double.tryParse(_amountController.text.trim()),
+        requiredAmount: null,
         category: _selectedCategory,
         userId: userId,
       );
@@ -406,7 +388,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         _fullNameController.clear();
         _emailController.clear();
         _pincodeController.clear();
-        _amountController.clear();
         setState(() {
           _disclaimerChecked = false;
           _selectedCategory = 'personal_loan';
@@ -419,6 +400,17 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
           ),
         );
       }
+    } on Exception catch (e) {
+      if (!mounted) return;
+      final message = e.toString().contains(AppConstants.msgLeadAlreadyExists)
+          ? AppConstants.msgLeadAlreadyExists
+          : 'An error occurred. Please try again.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message, style: GoogleFonts.inter()),
+          backgroundColor: AppTheme.error,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

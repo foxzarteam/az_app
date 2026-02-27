@@ -21,33 +21,87 @@ class GeometricPatternPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
 
-    paint.color = primaryDark;
+    // Deep base background
+    paint
+      ..color = primaryDark
+      ..maskFilter = null;
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
 
-    paint.color = primary.withOpacity(0.15);
-    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.15), 80, paint);
-    canvas.drawCircle(Offset(size.width * 0.15, size.height * 0.85), 60, paint);
+    // Helper to draw a soft blurred bubble
+    void drawBubble({
+      required Offset center,
+      required double radius,
+      required Color color,
+      double blurSigma = 18,
+    }) {
+      paint
+        ..color = color
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma);
+      canvas.drawCircle(center, radius, paint);
+    }
 
-    final wavePath = Path()
-      ..moveTo(0, size.height * 0.4)
-      ..quadraticBezierTo(size.width * 0.25, size.height * 0.35, size.width * 0.5, size.height * 0.4)
-      ..quadraticBezierTo(size.width * 0.75, size.height * 0.45, size.width, size.height * 0.4)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final width = size.width;
+    final height = size.height;
 
-    paint.color = primary.withOpacity(0.3);
-    canvas.drawPath(wavePath, paint);
+    // Main large background bubbles
+    drawBubble(
+      center: Offset(width * 0.2, height * 0.2),
+      radius: 110,
+      color: primary.withOpacity(0.55),
+    );
+    drawBubble(
+      center: Offset(width * 0.85, height * 0.18),
+      radius: 100,
+      color: orange.withOpacity(0.45),
+    );
+    drawBubble(
+      center: Offset(width * 0.15, height * 0.8),
+      radius: 120,
+      color: primary.withOpacity(0.35),
+    );
+    drawBubble(
+      center: Offset(width * 0.8, height * 0.78),
+      radius: 130,
+      color: orange.withOpacity(0.35),
+    );
 
-    paint.color = orange.withOpacity(0.2);
-    final orangePath = Path()
-      ..moveTo(size.width * 0.7, 0)
-      ..lineTo(size.width, size.height * 0.3)
-      ..lineTo(size.width, 0)
-      ..close();
-    canvas.drawPath(orangePath, paint);
+    // Extra smaller accent bubbles for richer look
+    drawBubble(
+      center: Offset(width * 0.5, height * 0.12),
+      radius: 40,
+      color: primary.withOpacity(0.4),
+      blurSigma: 14,
+    );
+    drawBubble(
+      center: Offset(width * 0.9, height * 0.45),
+      radius: 55,
+      color: orange.withOpacity(0.35),
+      blurSigma: 16,
+    );
+    drawBubble(
+      center: Offset(width * 0.1, height * 0.5),
+      radius: 50,
+      color: primary.withOpacity(0.3),
+      blurSigma: 16,
+    );
+    drawBubble(
+      center: Offset(width * 0.55, height * 0.85),
+      radius: 60,
+      color: primary.withOpacity(0.35),
+      blurSigma: 18,
+    );
+
+    // Light subtle glow behind the center logo area
+    drawBubble(
+      center: Offset(width * 0.5, height * 0.45),
+      radius: 140,
+      color: orange.withOpacity(0.18),
+      blurSigma: 22,
+    );
   }
 
   @override
@@ -163,15 +217,65 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     const yellow = Color(AppConstants.yellowAccent);
 
     return Scaffold(
-      backgroundColor: primaryDark,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          CustomPaint(
-            size: size,
-            painter: GeometricPatternPainter(
-              primaryDark: primaryDark,
-              primary: primary,
-              orange: orange,
+          // Same gradient + bubbles style as SignUpScreen
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [primaryDark, primary],
+              ),
+            ),
+          ),
+          Positioned(
+            top: size.height * 0.08,
+            left: -30,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: orange.withOpacity(0.15),
+              ),
+            ),
+          ),
+          Positioned(
+            top: size.height * 0.25,
+            right: -40,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: yellow.withOpacity(0.12),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: size.height * 0.15,
+            left: size.width * 0.2,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: orange.withOpacity(0.1),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: size.height * 0.08,
+            right: size.width * 0.15,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: yellow.withOpacity(0.15),
+              ),
             ),
           ),
           SafeArea(

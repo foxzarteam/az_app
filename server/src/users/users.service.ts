@@ -36,6 +36,14 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto): Promise<Record<string, unknown> | null> {
+    const existing = await this.getByMobile(dto.mobileNumber);
+    if (existing) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('UsersService.create: duplicate mobileNumber', dto.mobileNumber);
+      }
+      return null;
+    }
+
     const { data, error } = await this.users
       .insert({
         mobile_number: dto.mobileNumber,

@@ -203,6 +203,18 @@ class ApiService {
     );
   }
 
+  Future<List<Map<String, dynamic>>> getLeadsByUserId(String userId) async {
+    final json = await _get('/leads/user/$userId');
+    if (json == null || json['success'] != true) {
+      return [];
+    }
+    final data = json['data'];
+    if (data is List) {
+      return data.whereType<Map<String, dynamic>>().toList();
+    }
+    return [];
+  }
+
   Future<bool> createLead({
     required String pan,
     required String mobileNumber,
@@ -224,7 +236,14 @@ class ApiService {
       if (userId != null && userId.isNotEmpty) 'userId': userId,
     };
     final json = await _post('/leads', body: body);
-    return json != null && json['success'] == true;
+    if (json == null) return false;
+    if (json['success'] == true) return true;
+    final msg = json['message'] as String?;
+    if (msg != null &&
+        msg.toLowerCase().contains('already exists')) {
+      throw Exception(AppConstants.msgLeadAlreadyExists);
+    }
+    return false;
   }
 
 }

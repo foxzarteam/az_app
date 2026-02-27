@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 import '../services/api_service.dart';
 import 'main_shell_screen.dart';
+import 'signup_screen.dart';
 
 class MPinSetScreen extends StatefulWidget {
   final String userName;
@@ -98,7 +99,10 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
 
   void _goBack() {
     FocusManager.instance.primaryFocus?.unfocus();
-    Navigator.of(context).pop();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const SignUpScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> _saveMPin() async {
@@ -180,8 +184,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        FocusManager.instance.primaryFocus?.unfocus();
-        Navigator.of(context).pop();
+        _goBack();
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -305,18 +308,6 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 12),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: Text(
-                                          AppConstants.msgSetMpinSubtitle,
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w400,
-                                            color: Colors.white.withOpacity(0.9),
-                                          ),
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),

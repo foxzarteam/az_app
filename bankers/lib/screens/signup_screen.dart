@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
@@ -323,75 +322,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    FadeInDown(
-                                      duration: const Duration(milliseconds: 600),
-                                      child: Container(
-                                        width: 100,
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: accentOrange.withOpacity(0.4),
-                                              blurRadius: 30,
-                                              offset: const Offset(0, 10),
-                                              spreadRadius: 5,
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.account_balance_rounded,
-                                          color: primaryBlue,
-                                          size: 50,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    FadeInUp(
-                                      duration: const Duration(milliseconds: 600),
-                                      delay: const Duration(milliseconds: 200),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            '${AppConstants.appName.split(' ')[0]} ',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white,
-                                              letterSpacing: 1.5,
-                                            ),
-                                          ),
-                                          Text(
-                                            AppConstants.appName.split(' ')[1],
-                                            style: GoogleFonts.inter(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.w500,
-                                              color: accentOrange,
-                                              letterSpacing: 1.5,
-                                            ),
+                                    Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: accentOrange.withOpacity(0.4),
+                                            blurRadius: 30,
+                                            offset: const Offset(0, 10),
+                                            spreadRadius: 5,
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    FadeInUp(
-                                      duration: const Duration(milliseconds: 600),
-                                      delay: const Duration(milliseconds: 400),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: List.generate(5, (index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 3),
-                                            child: Icon(
-                                              Icons.star_rounded,
-                                              color: yellow,
-                                              size: 20,
-                                            ),
-                                          );
-                                        }),
+                                      child: const Icon(
+                                        Icons.account_balance_rounded,
+                                        color: primaryBlue,
+                                        size: 50,
                                       ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${AppConstants.appName.split(' ')[0]} ',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white,
+                                            letterSpacing: 1.5,
+                                          ),
+                                        ),
+                                        Text(
+                                          AppConstants.appName.split(' ')[1],
+                                          style: GoogleFonts.inter(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w500,
+                                            color: accentOrange,
+                                            letterSpacing: 1.5,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -424,220 +398,208 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      FadeInUp(
-                                        duration: const Duration(milliseconds: 700),
-                                        delay: const Duration(milliseconds: 200),
-                                        child: Text(
-                                          widget.isForgotMPIN
-                                              ? AppConstants.msgResetMpin
-                                              : AppConstants.msgGetStarted,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.w500,
-                                            color: primaryBlue,
-                                            letterSpacing: 0.5,
-                                          ),
+                                      Text(
+                                        widget.isForgotMPIN
+                                            ? AppConstants.msgResetMpin
+                                            : AppConstants.msgGetStarted,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w500,
+                                          color: primaryBlue,
+                                          letterSpacing: 0.5,
                                         ),
                                       ),
                                       const SizedBox(height: 24),
-                                      FadeInUp(
-                                        duration: const Duration(milliseconds: 800),
-                                        delay: const Duration(milliseconds: 400),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Mobile Number',
-                                              style: GoogleFonts.inter(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                                color: const Color(AppConstants.primaryText),
-                                              ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Mobile Number',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: const Color(AppConstants.primaryText),
                                             ),
-                                            const SizedBox(height: 12),
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(18),
-                                                border: Border.all(
-                                                  color: _errorMessage != null
-                                                      ? const Color(AppConstants.errorColor)
-                                                      : accentOrange.withOpacity(0.4),
-                                                  width: 2,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: accentOrange.withOpacity(0.15),
-                                                    blurRadius: 15,
-                                                    offset: const Offset(0, 4),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  GestureDetector(
-                                                    onTap: _showCountryPicker,
-                                                    child: Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                        horizontal: 14,
-                                                        vertical: 16,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        gradient: LinearGradient(
-                                                          colors: [accentOrange, accentOrange.withOpacity(0.8)],
-                                                        ),
-                                                        borderRadius: const BorderRadius.only(
-                                                          topLeft: Radius.circular(16),
-                                                          bottomLeft: Radius.circular(16),
-                                                        ),
-                                                      ),
-                                                      child: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Container(
-                                                            width: 26,
-                                                            height: 18,
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(5),
-                                                              border: Border.all(
-                                                                color: Colors.white,
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(4),
-                                                              child: Image.network(
-                                                                _selectedCountry.flagUrl,
-                                                                fit: BoxFit.cover,
-                                                                errorBuilder: (context, error, stackTrace) {
-                                                                  return Center(
-                                                                    child: Text(
-                                                                      _selectedCountry.flagEmoji,
-                                                                      style: const TextStyle(fontSize: 12),
-                                                                    ),
-                                                                  );
-                                                                },
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(width: 8),
-                                                          Text(
-                                                            _selectedCountry.dialCode,
-                                                            style: GoogleFonts.inter(
-                                                              fontSize: 15,
-                                                              fontWeight: FontWeight.w500,
-                                                              color: Colors.white,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(width: 4),
-                                                          const Icon(
-                                                            Icons.arrow_drop_down,
-                                                            color: Colors.white,
-                                                            size: 18,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                                                      child: TextFormField(
-                                                        controller: _mobileController,
-                                                        keyboardType: TextInputType.phone,
-                                                        maxLength: 10,
-                                                        style: GoogleFonts.inter(
-                                                          fontSize: 17,
-                                                          fontWeight: FontWeight.w500,
-                                                          color: const Color(AppConstants.primaryText),
-                                                          letterSpacing: 1,
-                                                        ),
-                                                        decoration: InputDecoration(
-                                                          hintText: AppConstants.hintMobilePlaceholder,
-                                                          hintStyle: GoogleFonts.inter(
-                                                            color: const Color(AppConstants.lightText),
-                                                            fontSize: 17,
-                                                          ),
-                                                          border: InputBorder.none,
-                                                          counterText: '',
-                                                        ),
-                                                        validator: (value) => mobileValidationError(value),
-                                                        onChanged: (value) {
-                                                          setState(() {
-                                                            _errorMessage = null;
-                                                          });
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 32),
-                                      FadeInUp(
-                                        duration: const Duration(milliseconds: 900),
-                                        delay: const Duration(milliseconds: 500),
-                                        child: SizedBox(
-                                          width: double.infinity,
-                                          child: Container(
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Container(
                                             decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [accentOrange, accentOrange.withOpacity(0.8)],
-                                              ),
+                                              color: Colors.white,
                                               borderRadius: BorderRadius.circular(18),
+                                              border: Border.all(
+                                                color: _errorMessage != null
+                                                    ? const Color(AppConstants.errorColor)
+                                                    : accentOrange.withOpacity(0.4),
+                                                width: 2,
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: accentOrange.withOpacity(0.4),
-                                                  blurRadius: 20,
-                                                  offset: const Offset(0, 8),
-                                                  spreadRadius: 2,
+                                                  color: accentOrange.withOpacity(0.15),
+                                                  blurRadius: 15,
+                                                  offset: const Offset(0, 4),
                                                 ),
                                               ],
                                             ),
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                onTap: _isLoading ? null : _handleSubmit,
-                                                borderRadius: BorderRadius.circular(18),
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                                  child: _isLoading
-                                                      ? const Center(
-                                                          child: SizedBox(
-                                                            height: 20,
-                                                            width: 20,
-                                                            child: CircularProgressIndicator(
-                                                              strokeWidth: 2,
-                                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                                Colors.white,
-                                                              ),
+                                            child: Row(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: _showCountryPicker,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 14,
+                                                      vertical: 16,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [accentOrange, accentOrange.withOpacity(0.8)],
+                                                      ),
+                                                      borderRadius: const BorderRadius.only(
+                                                        topLeft: Radius.circular(16),
+                                                        bottomLeft: Radius.circular(16),
+                                                      ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Container(
+                                                          width: 26,
+                                                          height: 18,
+                                                          decoration: BoxDecoration(
+                                                            borderRadius: BorderRadius.circular(5),
+                                                            border: Border.all(
+                                                              color: Colors.white,
+                                                              width: 1,
                                                             ),
                                                           ),
-                                                        )
-                                                      : Row(
-                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                          children: [
-                                                            Text(
-                                                              'Continue',
-                                                              style: GoogleFonts.inter(
-                                                                fontSize: 17,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 1,
-                                                                color: Colors.white,
-                                                              ),
+                                                          child: ClipRRect(
+                                                            borderRadius: BorderRadius.circular(4),
+                                                            child: Image.network(
+                                                              _selectedCountry.flagUrl,
+                                                              fit: BoxFit.cover,
+                                                              errorBuilder: (context, error, stackTrace) {
+                                                                return Center(
+                                                                  child: Text(
+                                                                    _selectedCountry.flagEmoji,
+                                                                    style: const TextStyle(fontSize: 12),
+                                                                  ),
+                                                                );
+                                                              },
                                                             ),
-                                                            const SizedBox(width: 10),
-                                                            const Icon(
-                                                              Icons.arrow_forward_rounded,
-                                                              color: Colors.white,
-                                                              size: 22,
-                                                            ),
-                                                          ],
+                                                          ),
                                                         ),
+                                                        const SizedBox(width: 8),
+                                                        Text(
+                                                          _selectedCountry.dialCode,
+                                                          style: GoogleFonts.inter(
+                                                            fontSize: 15,
+                                                            fontWeight: FontWeight.w500,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        const Icon(
+                                                          Icons.arrow_drop_down,
+                                                          color: Colors.white,
+                                                          size: 18,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                                 ),
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                                                    child: TextFormField(
+                                                      controller: _mobileController,
+                                                      keyboardType: TextInputType.phone,
+                                                      maxLength: 10,
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 17,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: const Color(AppConstants.primaryText),
+                                                        letterSpacing: 1,
+                                                      ),
+                                                      decoration: InputDecoration(
+                                                        hintText: AppConstants.hintMobilePlaceholder,
+                                                        hintStyle: GoogleFonts.inter(
+                                                          color: const Color(AppConstants.lightText),
+                                                          fontSize: 17,
+                                                        ),
+                                                        border: InputBorder.none,
+                                                        counterText: '',
+                                                      ),
+                                                      validator: (value) => mobileValidationError(value),
+                                                      onChanged: (value) {
+                                                        setState(() {
+                                                          _errorMessage = null;
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 32),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [accentOrange, accentOrange.withOpacity(0.8)],
+                                            ),
+                                            borderRadius: BorderRadius.circular(18),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: accentOrange.withOpacity(0.4),
+                                                blurRadius: 20,
+                                                offset: const Offset(0, 8),
+                                                spreadRadius: 2,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              onTap: _isLoading ? null : _handleSubmit,
+                                              borderRadius: BorderRadius.circular(18),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                                child: _isLoading
+                                                    ? const Center(
+                                                        child: SizedBox(
+                                                          height: 20,
+                                                          width: 20,
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                                              Colors.white,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Text(
+                                                            'Continue',
+                                                            style: GoogleFonts.inter(
+                                                              fontSize: 17,
+                                                              fontWeight: FontWeight.w500,
+                                                              letterSpacing: 1,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 10),
+                                                          const Icon(
+                                                            Icons.arrow_forward_rounded,
+                                                            color: Colors.white,
+                                                            size: 22,
+                                                          ),
+                                                        ],
+                                                      ),
                                               ),
                                             ),
                                           ),

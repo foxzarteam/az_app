@@ -48,6 +48,8 @@ class AppConstants {
   static const String msgFailedCreateAccount =
       'Failed to create account. Please try again.';
   static const String msgNumberNotRegistered = 'This number is not registered';
+  static const String msgLeadAlreadyExists =
+      'This lead already exists in our system.';
   static const String msgErrorTryAgain = 'An error occurred. Please try again.';
   static const String msgNetworkError = 'Network error. Please try again.';
   static const String msgInvalidOtp = 'Invalid OTP. Please try again.';
@@ -133,7 +135,7 @@ class AppConstants {
   static const String subtitleSeeAllLeads = 'See all leads here';
   static const String labelViewDetails = 'View Details';
   static const String labelSuccess = 'Success';
-  static const String labelInProcess = 'In Process';
+  static const String labelInProcess = 'Pending';
   static const String labelRejected = 'Rejected';
   static const String labelActionRequired = 'Action Required';
   static const String titleAddLeadsEarnRewards = 'Add Leads & Earn Rewards!';
