@@ -77,7 +77,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(AppConstants.mainBackground),
+      backgroundColor: AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(
@@ -147,11 +147,11 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppTheme.white.withOpacity(0.2),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.add_rounded,
-                                color: Colors.white, size: 24),
+                                color: AppTheme.surfaceWhite, size: 24),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -160,7 +160,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppTheme.surfaceWhite,
                               ),
                             ),
                           ),
@@ -183,9 +183,9 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Colors.white.withOpacity(0.0),
-                                    Colors.white.withOpacity(0.16),
-                                    Colors.white.withOpacity(0.0),
+                                    AppTheme.white.withOpacity(0.0),
+                                    AppTheme.white.withOpacity(0.16),
+                                    AppTheme.white.withOpacity(0.0),
                                   ],
                                 ),
                               ),
@@ -216,11 +216,11 @@ class _ProviderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+                            color: AppTheme.overlayDark(0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -232,17 +232,18 @@ class _ProviderCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.12),
+                  color: AppTheme.accentOrange.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.accentOrange.withOpacity(0.3), width: 1),
                 ),
                 child: Text(
                   '${AppConstants.earnUptoPrefix} ${provider.earnAmount}',
                   style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryBlue,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.accentOrange,
                   ),
                 ),
               ),
@@ -346,11 +347,11 @@ class _ProviderCard extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppTheme.surfaceWhite,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+                        const Icon(Icons.share_rounded, color: AppTheme.white, size: 20),
                       ],
                     ),
                   ),
@@ -387,7 +388,7 @@ class _ShareSheetContent extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceWhite,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -400,7 +401,7 @@ class _ShareSheetContent extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppTheme.borderColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -420,19 +421,19 @@ class _ShareSheetContent extends StatelessWidget {
               _ShareOption(
                 icon: Icons.email_outlined,
                 label: AppConstants.shareLabelMail,
-                color: Colors.blue,
+                color: AppTheme.socialMail,
                 onTap: () => _share(context),
               ),
               _ShareOption(
                 icon: Icons.chat_bubble_outline_rounded,
                 label: AppConstants.shareLabelWhatsApp,
-                color: const Color(0xFF25D366),
+                color: AppTheme.socialWhatsApp,
                 onTap: () => _share(context),
               ),
               _ShareOption(
                 icon: Icons.camera_alt_outlined,
                 label: AppConstants.shareLabelInstagram,
-                color: const Color(0xFFE4405F),
+                color: AppTheme.socialInstagram,
                 onTap: () => _share(context),
               ),
             ],
@@ -485,7 +486,7 @@ class _ShareOption extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 28),
+            child: Icon(icon, color: AppTheme.white, size: 28),
           ),
           const SizedBox(height: 10),
           Text(

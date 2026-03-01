@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../utils/constants.dart';
+import '../l10n/app_locale.dart';
+import '../theme/app_theme.dart';
 
 /// Index: 0=Home, 1=Leads, 2=Referral, 3=My Leads. Center button is separate.
 class CommonBottomNav extends StatefulWidget {
@@ -51,15 +52,12 @@ class _CommonBottomNavState extends State<CommonBottomNav>
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const accentOrange = Color(AppConstants.accentColor);
-
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceWhite,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.overlayDark(0.05),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -73,16 +71,16 @@ class _CommonBottomNavState extends State<CommonBottomNav>
             children: [
               _buildNavItem(
                 Icons.home_rounded,
-                AppConstants.labelHome,
+                context.t('labelHome'),
                 widget.currentIndex == 0,
-                primaryBlue,
+                AppTheme.primaryBlue,
                 onTap: widget.onHomeTap,
               ),
               _buildNavItem(
                 Icons.description_rounded,
-                AppConstants.labelLeads,
+                context.t('labelLeads'),
                 widget.currentIndex == 1,
-                primaryBlue,
+                AppTheme.primaryBlue,
                 onTap: widget.onLeadsTap,
               ),
               AnimatedBuilder(
@@ -101,19 +99,19 @@ class _CommonBottomNavState extends State<CommonBottomNav>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              accentOrange,
-                              accentOrange.withOpacity(0.8),
-                              Color.lerp(
-                                accentOrange,
-                                const Color(AppConstants.yellowAccent),
-                                _gradientAnimation.value,
-                              )!,
-                            ],
+                            AppTheme.accentOrange,
+                            AppTheme.accentOrange.withOpacity(0.8),
+                            Color.lerp(
+                              AppTheme.accentOrange,
+                              AppTheme.yellow,
+                              _gradientAnimation.value,
+                            )!,
+                          ],
                           ),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: accentOrange.withOpacity(0.5),
+                              color: AppTheme.accentOrange.withOpacity(0.5),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                               spreadRadius: 2,
@@ -122,7 +120,7 @@ class _CommonBottomNavState extends State<CommonBottomNav>
                         ),
                         child: const Icon(
                           Icons.add_rounded,
-                          color: Colors.white,
+                          color: AppTheme.white,
                           size: 28,
                         ),
                       ),
@@ -132,16 +130,16 @@ class _CommonBottomNavState extends State<CommonBottomNav>
               ),
               _buildNavItem(
                 Icons.people_rounded,
-                AppConstants.labelReferral,
+                context.t('labelReferral'),
                 widget.currentIndex == 2,
-                primaryBlue,
+                AppTheme.primaryBlue,
                 onTap: widget.onReferralTap,
               ),
               _buildNavItem(
                 Icons.folder_outlined,
-                AppConstants.labelMyLeads,
+                context.t('labelMyLeads'),
                 widget.currentIndex == 3,
-                primaryBlue,
+                AppTheme.primaryBlue,
                 onTap: widget.onMyLeadsTap,
               ),
             ],
@@ -158,7 +156,7 @@ class _CommonBottomNavState extends State<CommonBottomNav>
     Color activeColor, {
     VoidCallback? onTap,
   }) {
-    final color = isActive ? activeColor : const Color(AppConstants.secondaryText);
+    final color = isActive ? activeColor : AppTheme.secondaryText;
     return GestureDetector(
       onTap: onTap ?? () {},
       behavior: HitTestBehavior.opaque,

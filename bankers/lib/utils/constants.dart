@@ -1,3 +1,4 @@
+/// App constants: strings, keys, numbers only. All colors are in app_theme.dart.
 class AppConstants {
   // OTP UI configuration (actual sending is done by backend)
   static const int otpLength = 4;
@@ -10,25 +11,6 @@ class AppConstants {
   static const int mobileNumberLength = 10;
   static const String mobileNumberPattern = r'^[6-9]\d{9}$';
 
-  // Colors — premium blue theme (orange accent), no purple
-  static const int primaryColor = 0xFF2320E7;       // Premium blue
-  static const int primaryColorDark = 0xFF1A1BC7;   // Darker blue for gradients
-  static const int accentColor = 0xFFFF6B35;        // Orange (kept)
-  static const int yellowAccent = 0xFFFFD700;
-  static const int primaryColorHover = 0xFF3D3AFF;
-  static const int accentColorHover = 0xFFFF8C42;
-  static const int mainBackground = 0xFFF0F5FA;
-  static const int cardBackground = 0xFFFFFFFF;
-  static const int secondaryBackground = 0xFFF0F5FA;
-  static const int primaryText = 0xFF3C3C3C;
-  static const int secondaryText = 0xFF666666;
-  static const int lightText = 0xFF999999;
-  static const int borderColor = 0xFFE0E0E0;
-  static const int dividerColor = 0xFFF0F5FA;
-  static const int successColor = 0xFF10B981;
-  static const int errorColor = 0xFFEF4444;
-  static const int warningColor = 0xFFF59E0B;
-
   // SharedPreferences Keys
   static const String keyIsLoggedIn = 'is_logged_in';
   static const String keyUserName = 'user_name';
@@ -38,6 +20,7 @@ class AppConstants {
   static const String keyPincode = 'pincode';
   static const String keyOtpExpiry = 'otp_expiry';
   static const String keyOtpValue = 'otp_value';
+  static const String keyAppLocale = 'app_locale';
 
   // Default / placeholder strings
   static const String defaultUserName = 'User';
@@ -100,6 +83,14 @@ class AppConstants {
   static const String msgValidIndianNumber = 'Enter valid Indian number';
   static const String msgOtpMustBeDigits = 'OTP must be 4 digits';
 
+  // Payment (UPI / IFSC) validation
+  static const String msgEnterUpiOrMobile = 'Enter UPI ID or 10-digit mobile number';
+  static const String msgInvalidUpi = 'Enter valid UPI ID (e.g. name@upi) or 10-digit mobile';
+  static const String msgEnterIfsc = 'Enter IFSC code';
+  static const String msgInvalidIfsc = 'IFSC must be 11 characters (e.g. SBIN0001234)';
+  static const String msgEnterBankNameAndIfsc = 'Enter bank name and IFSC code';
+  static const String labelEdit = 'Edit';
+
   // Dashboard / Share — default message + apply link (image shared from assets)
   static const String shareTitlePersonalLoan = 'Share Personal Loan';
   static const String shareApplyLink = 'https://example.com/apply';
@@ -122,10 +113,12 @@ class AppConstants {
   static const String labelMyLead = 'My Lead';
   static const String labelPrivacyPolicy = 'Privacy Policy';
   static const String labelSettings = 'Settings';
+  static const String labelPaymentSettings = 'Payment Settings';
   static const String subtitlePersonalDetails = 'View and edit your profile';
   static const String subtitleMyLead = 'Manage your leads';
   static const String subtitlePrivacyPolicy = 'Read our privacy policy';
   static const String subtitleSettings = 'App preferences and more';
+  static const String subtitlePaymentSettings = 'UPI & bank account details';
 
   // Leads screen
   static const String titleAddLeadsEarn = 'Add leads & earn instantly';

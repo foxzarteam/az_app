@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
+import '../l10n/app_locale.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
 import '../utils/page_routes.dart';
@@ -13,7 +14,10 @@ import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/drawer_menu_item.dart';
 import 'add_lead_screen.dart';
+import 'leads_screen.dart';
+import 'payment_settings_screen.dart';
 import 'personal_details_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
@@ -61,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppTheme.overlayDark(0.5),
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => _buildProfileDrawer(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -101,7 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         width: size.width * 0.9,
         height: size.height,
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           boxShadow: [
             BoxShadow(
               color: Colors.black26,
@@ -120,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppConstants.labelProfile,
+                      context.t('labelProfile'),
                       style: GoogleFonts.inter(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -132,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(AppConstants.borderColor).withOpacity(0.2),
+                          color: AppTheme.borderColor.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -165,34 +169,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 32),
                     DrawerMenuItem(
                       icon: Icons.person_outline_rounded,
-                      title: AppConstants.labelPersonalDetails,
-                      subtitle: AppConstants.subtitlePersonalDetails,
+                      title: context.t('labelPersonalDetails'),
+                      subtitle: context.t('subtitlePersonalDetails'),
                       color: AppTheme.accentOrange,
                       onTap: () => _openPersonalDetails(context),
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
                       icon: Icons.people_outline_rounded,
-                      title: AppConstants.labelMyLead,
-                      subtitle: AppConstants.subtitleMyLead,
+                      title: context.t('labelMyLead'),
+                      subtitle: context.t('subtitleMyLead'),
                       color: AppTheme.primaryBlue,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => LeadsScreen(userName: widget.userName),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
                       icon: Icons.privacy_tip_outlined,
-                      title: AppConstants.labelPrivacyPolicy,
-                      subtitle: AppConstants.subtitlePrivacyPolicy,
+                      title: context.t('labelPrivacyPolicy'),
+                      subtitle: context.t('subtitlePrivacyPolicy'),
                       color: AppTheme.primaryBlue,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PrivacyPolicyScreen(userName: widget.userName),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
-                      icon: Icons.settings_outlined,
-                      title: AppConstants.labelSettings,
-                      subtitle: AppConstants.subtitleSettings,
+                      icon: Icons.payment_rounded,
+                      title: context.t('labelPaymentSettings'),
+                      subtitle: context.t('subtitlePaymentSettings'),
                       color: AppTheme.accentOrange,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PaymentSettingsScreen(userName: widget.userName),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -208,7 +233,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: Column(
         children: [
           CommonNavBar(
@@ -241,10 +266,10 @@ class _ShareSheetContent extends StatelessWidget {
   const _ShareSheetContent({required this.message});
 
   /// Shares the personal loan message (text). User can paste image manually if needed.
-  static Future<void> _shareWithImage(String message) async {
+  static Future<void> _shareWithImage(String message, String subject) async {
     await Share.share(
       message,
-      subject: AppConstants.shareSubjectPersonalLoan,
+      subject: subject,
     );
   }
 
@@ -252,7 +277,7 @@ class _ShareSheetContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
@@ -267,12 +292,12 @@ class _ShareSheetContent extends StatelessWidget {
             height: 4,
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppTheme.borderColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           Text(
-            AppConstants.shareTitlePersonalLoan,
+            context.t('shareTitlePersonalLoan'),
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -286,31 +311,31 @@ class _ShareSheetContent extends StatelessWidget {
               _buildShareOption(
                 context: context,
                 icon: Icons.email_outlined,
-                label: AppConstants.shareLabelMail,
-                color: Colors.blue,
+                label: context.t('shareLabelMail'),
+                color: AppTheme.socialMail,
                 onTap: () async {
                   Navigator.pop(context);
-                  await _shareWithImage(message);
+                  await _shareWithImage(message, context.t('shareSubjectPersonalLoan'));
                 },
               ),
               _buildShareOption(
                 context: context,
                 icon: Icons.chat_bubble_outline,
-                label: AppConstants.shareLabelWhatsApp,
-                color: const Color(0xFF25D366),
+                label: context.t('shareLabelWhatsApp'),
+                color: AppTheme.socialWhatsApp,
                 onTap: () async {
                   Navigator.pop(context);
-                  await _shareWithImage(message);
+                  await _shareWithImage(message, context.t('shareSubjectPersonalLoan'));
                 },
               ),
               _buildShareOption(
                 context: context,
                 icon: Icons.camera_alt_outlined,
-                label: AppConstants.shareLabelInstagram,
-                color: const Color(0xFFE4405F),
+                label: context.t('shareLabelInstagram'),
+                color: AppTheme.socialInstagram,
                 onTap: () async {
                   Navigator.pop(context);
-                  await _shareWithImage(message);
+                  await _shareWithImage(message, context.t('shareSubjectPersonalLoan'));
                 },
               ),
             ],
@@ -350,7 +375,7 @@ class _ShareSheetContent extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 32),
+            child: Icon(icon, color: AppTheme.white, size: 32),
           ),
           const SizedBox(height: 12),
           Text(
@@ -453,7 +478,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
@@ -501,13 +526,13 @@ class _DashboardBodyBuilder extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: AppTheme.borderColor.withOpacity(0.5),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Center(
           child: Text(
             'No banners',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(color: AppTheme.secondaryText, fontSize: 14),
           ),
         ),
       ),
@@ -537,7 +562,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: accentOrange.withOpacity(0.3), width: 2),
                 ),
-                child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 24),
+                child: const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.white, size: 24),
               ),
               const Spacer(),
               GestureDetector(
@@ -549,24 +574,24 @@ class _DashboardBodyBuilder extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [BoxShadow(color: accentOrange.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
-                  child: Text('ADD LEAD', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white, letterSpacing: 0.5)),
+                  child: Text('ADD LEAD', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.white, letterSpacing: 0.5)),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 18),
-          Text('Balance', style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
+          Text('Balance', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
-          Text('₹0.00', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: 0.8)),
+          Text('₹0.00', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w500, color: AppTheme.white, letterSpacing: 0.8)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.only(top: 14),
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.white.withOpacity(0.2), width: 1))),
+            decoration: BoxDecoration(border: Border(top: BorderSide(color: AppTheme.white.withOpacity(0.2), width: 1))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total Earning', style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
-                Text('₹0.00', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                Text('Total Earning', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
+                Text('₹0.00', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.white)),
               ],
             ),
           ),
@@ -593,8 +618,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: Colors.blue, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-              Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: Colors.green, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: AppTheme.socialMail, bottomColor: AppTheme.accentOrange.withOpacity(0.2), onTap: onCardTap))),
+              Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: AppTheme.success, bottomColor: AppTheme.accentOrange.withOpacity(0.2), onTap: onCardTap))),
             ],
           ),
         ),
@@ -607,7 +632,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppTheme.accentOrange.withOpacity(0.2), width: 1.5),
           boxShadow: [BoxShadow(color: AppTheme.accentOrange.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4), spreadRadius: 0)],
@@ -696,7 +721,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: accentOrange.withOpacity(0.2), shape: BoxShape.circle),
-            child: const Icon(Icons.arrow_forward_ios_rounded, color: Color(AppConstants.accentColor), size: 18),
+            child: const Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.accentOrange, size: 18),
           ),
         ],
       ),

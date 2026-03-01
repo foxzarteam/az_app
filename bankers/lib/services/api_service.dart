@@ -164,7 +164,7 @@ class ApiService {
     if (json == null) {
       return OTPResponse(
         success: false,
-        message: AppConstants.msgNetworkError,
+        message: 'msgNetworkError',
       );
     }
     return OTPResponse(
@@ -184,7 +184,7 @@ class ApiService {
     if (otp.length != AppConstants.otpLength) {
       return OTPVerificationResponse(
         success: false,
-        message: AppConstants.msgOtpMustBeDigits,
+        message: 'msgOtpMustBeDigits',
       );
     }
     final json = await _post(
@@ -194,7 +194,7 @@ class ApiService {
     if (json == null) {
       return OTPVerificationResponse(
         success: false,
-        message: AppConstants.msgNetworkError,
+        message: 'msgNetworkError',
       );
     }
     return OTPVerificationResponse(
@@ -241,9 +241,37 @@ class ApiService {
     final msg = json['message'] as String?;
     if (msg != null &&
         msg.toLowerCase().contains('already exists')) {
-      throw Exception(AppConstants.msgLeadAlreadyExists);
+      throw Exception('msgLeadAlreadyExists');
     }
     return false;
   }
 
+  /// Get payment accounts (UPI + Bank) for a user. Returns list of { payment_type, upi_id?, bank_name?, ifsc_code? }.
+  Future<List<Map<String, dynamic>>> getPaymentAccounts(String userId) async {
+    final json = await _get('/payment-accounts/user/$userId');
+    if (json == null || json['success'] != true) return [];
+    final data = json['data'];
+    if (data is List) {
+      return data.whereType<Map<String, dynamic>>().toList();
+    }
+    return [];
+  }
+
+  /// Save UPI or Bank details. paymentType: 'upi' | 'bank'. For UPI pass upiId; for bank pass bankName and ifscCode.
+  Future<bool> savePaymentAccount(
+    String userId, {
+    required String paymentType,
+    String? upiId,
+    String? bankName,
+    String? ifscCode,
+  }) async {
+    final body = <String, dynamic>{
+      'paymentType': paymentType,
+      if (upiId != null) 'upiId': upiId,
+      if (bankName != null) 'bankName': bankName,
+      if (ifscCode != null) 'ifscCode': ifscCode,
+    };
+    final json = await _put('/payment-accounts/user/$userId', body: body);
+    return json != null && json['success'] == true;
+  }
 }

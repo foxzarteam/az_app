@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_locale.dart';
 import '../utils/constants.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
@@ -89,7 +90,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(AppConstants.mainBackground),
+      backgroundColor: AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(
@@ -192,7 +193,7 @@ class _PersonalDetailsContentState extends State<PersonalDetailsContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppConstants.msgProfileUpdated, style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+            content: Text(context.t('msgProfileUpdated'), style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
             backgroundColor: AppTheme.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -261,13 +262,13 @@ class PersonalDetailsFormCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildReadOnlyField(label: AppConstants.labelFullName, value: userName, icon: Icons.person_outline_rounded),
+          _buildReadOnlyField(label: context.t('labelFullName'), value: userName, icon: Icons.person_outline_rounded),
           const SizedBox(height: 20),
-          _buildReadOnlyField(label: AppConstants.labelMobileNumber, value: mobileNumber, icon: Icons.phone_android_rounded),
+          _buildReadOnlyField(label: context.t('labelMobileNumber'), value: mobileNumber, icon: Icons.phone_android_rounded),
           const SizedBox(height: 20),
-          _buildEditableField(controller: emailController, label: AppConstants.labelEmail, hint: AppConstants.hintEmail, icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+          _buildEditableField(controller: emailController, label: context.t('labelEmail'), hint: context.t('hintEmail'), icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 20),
-          _buildEditableField(controller: pincodeController, label: AppConstants.labelPinCode, hint: AppConstants.hintPinCode, icon: Icons.location_on_outlined, keyboardType: TextInputType.number),
+          _buildEditableField(controller: pincodeController, label: context.t('labelPinCode'), hint: context.t('hintPinCode'), icon: Icons.location_on_outlined, keyboardType: TextInputType.number),
           const SizedBox(height: 32),
           _buildSubmitButton(context),
         ],
@@ -279,21 +280,21 @@ class PersonalDetailsFormCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(AppConstants.secondaryText))),
+        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.secondaryText)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(AppConstants.mainBackground),
+            color: AppTheme.mainBackground,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(AppConstants.borderColor), width: 1),
+            border: Border.all(color: AppTheme.borderColor, width: 1),
           ),
           child: Row(
             children: [
               Icon(icon, size: 20, color: AppTheme.accentOrange),
               const SizedBox(width: 12),
-              Expanded(child: Text(value, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(AppConstants.primaryText)))),
+              Expanded(child: Text(value, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.primaryText))),
             ],
           ),
         ),
@@ -305,20 +306,20 @@ class PersonalDetailsFormCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(AppConstants.secondaryText))),
+        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.secondaryText)),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
-          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(AppConstants.primaryText)),
+          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.primaryText),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.inter(color: const Color(AppConstants.lightText), fontWeight: FontWeight.w500),
+            hintStyle: GoogleFonts.inter(color: AppTheme.lightText, fontWeight: FontWeight.w500),
             prefixIcon: Icon(icon, size: 20, color: AppTheme.accentOrange),
             filled: true,
-            fillColor: const Color(AppConstants.mainBackground),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(AppConstants.borderColor))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(AppConstants.borderColor))),
+            fillColor: AppTheme.mainBackground,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.borderColor)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppTheme.borderColor)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppTheme.accentOrange, width: 2)),
           ),
         ),
@@ -344,7 +345,7 @@ class PersonalDetailsFormCard extends StatelessWidget {
             child: Center(
               child: isLoading
                   ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
-                  : Text(AppConstants.labelSubmit, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: 0.5)),
+                  : Text(context.t('labelSubmit'), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: 0.5)),
             ),
           ),
         ),

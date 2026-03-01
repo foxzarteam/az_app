@@ -42,7 +42,7 @@ class OtpInputField extends StatelessWidget {
           filled: true,
           fillColor: hasError
               ? AppTheme.error.withOpacity(0.05)
-              : const Color(AppConstants.mainBackground),
+              : AppTheme.mainBackground,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
             borderSide: BorderSide(

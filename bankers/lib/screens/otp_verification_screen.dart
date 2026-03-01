@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_locale.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/message_banner.dart';
 import 'mpin_set_screen.dart';
@@ -175,7 +177,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       } else {
         setState(() {
           _errorMessage =
-              response.message ?? AppConstants.msgInvalidOtp;
+              response.message ?? 'msgInvalidOtp';
         });
         _clearOtpFields();
       }
@@ -231,10 +233,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const primaryBlueDark = Color(AppConstants.primaryColorDark);
-    const accentOrange = Color(AppConstants.accentColor);
-    const yellow = Color(AppConstants.yellowAccent);
+    const primaryBlue = AppTheme.primaryBlue;
+    const primaryBlueDark = AppTheme.primaryBlueDark;
+    const accentOrange = AppTheme.accentOrange;
+    const yellow = AppTheme.yellow;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -330,21 +332,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                     ),
                                     const SizedBox(height: 24),
                                     Text(
-                                      AppConstants.msgVerifyOtp,
+                                      context.t('msgVerifyOtp'),
                                       style: GoogleFonts.inter(
                                         fontSize: 32,
                                         fontWeight: FontWeight.w500,
                                         color: Colors.white,
                                         letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      'Enter the OTP sent to your mobile',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white.withOpacity(0.9),
                                       ),
                                     ),
                                   ],
@@ -398,13 +391,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                               counterText: '',
                                               filled: true,
                                               fillColor: _errorMessage != null
-                                                  ? const Color(AppConstants.errorColor).withOpacity(0.05)
-                                                  : const Color(AppConstants.mainBackground),
+                                                  ? AppTheme.error.withOpacity(0.05)
+                                                  : AppTheme.mainBackground,
                                               border: OutlineInputBorder(
                                                 borderRadius: BorderRadius.circular(18),
                                                 borderSide: BorderSide(
                                                   color: _errorMessage != null
-                                                      ? const Color(AppConstants.errorColor)
+                                                      ? AppTheme.error
                                                       : accentOrange.withOpacity(0.3),
                                                   width: 2,
                                                 ),
@@ -413,7 +406,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                                 borderRadius: BorderRadius.circular(18),
                                                 borderSide: BorderSide(
                                                   color: _errorMessage != null
-                                                      ? const Color(AppConstants.errorColor)
+                                                      ? AppTheme.error
                                                       : accentOrange.withOpacity(0.3),
                                                   width: 2,
                                                 ),
@@ -422,7 +415,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                                 borderRadius: BorderRadius.circular(18),
                                                 borderSide: BorderSide(
                                                   color: _errorMessage != null
-                                                      ? const Color(AppConstants.errorColor)
+                                                      ? AppTheme.error
                                                       : accentOrange,
                                                   width: 3,
                                                 ),
@@ -439,12 +432,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                     if (_isVerifying)
                                       const CircularProgressIndicator(
                                         valueColor: AlwaysStoppedAnimation<Color>(
-                                          Color(AppConstants.accentColor),
+                                          AppTheme.accentOrange,
                                         ),
                                       )
                                     else if (_errorMessage != null)
                                       MessageBanner(
-                                        message: _errorMessage!,
+                                        message: context.tOrRaw(_errorMessage!),
                                         type: MessageBannerType.error,
                                       )
                                     else if (_successMessage != null)
@@ -457,23 +450,23 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          AppConstants.msgDidntReceiveOtp,
+                                          context.t('msgDidntReceiveOtp'),
                                           style: GoogleFonts.inter(
                                             fontSize: 14,
-                                            color: const Color(AppConstants.secondaryText),
+                                            color: AppTheme.secondaryText,
                                           ),
                                         ),
                                         GestureDetector(
                                           onTap: _resendCooldown > 0 ? null : _resendOTP,
                                           child: Text(
                                             _resendCooldown > 0
-                                                ? 'Resend (${_resendCooldown}s)'
-                                                : AppConstants.msgResendOtp,
+                                                ? '${context.t('msgResendOtp')} (${_resendCooldown}s)'
+                                                : context.t('msgResendOtp'),
                                             style: GoogleFonts.inter(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                               color: _resendCooldown > 0
-                                                  ? const Color(AppConstants.lightText)
+                                                  ? AppTheme.lightText
                                                   : accentOrange,
                                               decoration: _resendCooldown > 0
                                                   ? TextDecoration.none

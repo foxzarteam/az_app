@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../l10n/app_locale.dart';
+import '../screens/language_select_screen.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 
-/// Common navbar used on all pages: gradient bar with avatar, "Hi, User", To Gold, notification.
-/// Uses app global color theme.
+/// Common navbar: gradient bar with avatar, "Hi, User", language icon, notification.
 class CommonNavBar extends StatelessWidget {
   final String userName;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final VoidCallback? onAvatarTap;
-  final VoidCallback? onToGoldTap;
   final VoidCallback? onNotificationTap;
 
   const CommonNavBar({
@@ -18,27 +20,22 @@ class CommonNavBar extends StatelessWidget {
     this.showBackButton = false,
     this.onBackPressed,
     this.onAvatarTap,
-    this.onToGoldTap,
     this.onNotificationTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const primaryBlueDark = Color(AppConstants.primaryColorDark);
-    const accentOrange = Color(AppConstants.accentColor);
-    const yellow = Color(AppConstants.yellowAccent);
-
+    final appLocale = context.watch<AppLocale>();
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryBlueDark, primaryBlue],
+          colors: [AppTheme.primaryBlueDark, AppTheme.primaryBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryBlue.withOpacity(0.25),
+            color: AppTheme.primaryBlue.withOpacity(0.25),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -79,7 +76,7 @@ class CommonNavBar extends StatelessWidget {
                     height: 50,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [accentOrange, accentOrange.withOpacity(0.8)],
+                        colors: [AppTheme.accentOrange, AppTheme.accentOrange.withOpacity(0.8)],
                       ),
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -88,7 +85,7 @@ class CommonNavBar extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: accentOrange.withOpacity(0.4),
+                          color: AppTheme.accentOrange.withOpacity(0.4),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),
@@ -104,7 +101,7 @@ class CommonNavBar extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Hi, $userName',
+                  '${appLocale.t('hi')}, $userName',
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -116,30 +113,22 @@ class CommonNavBar extends StatelessWidget {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: onToGoldTap,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [yellow, accentOrange],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accentOrange.withOpacity(0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const LanguageSelectScreen(),
                     ),
-                    child: Text(
-                      AppConstants.labelToGold,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.translate_rounded,
+                      color: Colors.white,
+                      size: 22,
                     ),
                   ),
                 ),
@@ -169,7 +158,7 @@ class CommonNavBar extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                          color: Color(AppConstants.accentColor),
+                          color: AppTheme.accentOrange,
                           shape: BoxShape.circle,
                         ),
                       ),

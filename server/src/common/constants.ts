@@ -2,6 +2,7 @@ export const TABLE_OTP_SESSIONS = 'otp_sessions';
 export const TABLE_USERS = 'users';
 export const TABLE_LEADS = 'leads';
 export const TABLE_BANNERS = 'banners';
+export const TABLE_PAYMENT_ACCOUNTS = 'payment_accounts';
 
 export const OTP_LENGTH = 4;
 export const OTP_EXPIRY_MINUTES = 5;

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../config/app_config.dart';
 import '../services/api_service.dart';
@@ -178,7 +179,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Widget _buildStars() {
-    const yellow = Color(AppConstants.yellowAccent);
+    const yellow = AppTheme.yellow;
     final angle = _rotationAnimation.value * 2 * math.pi;
     const radius = 70.0;
     const centerX = 90.0;
@@ -196,7 +197,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             top: centerY + math.sin(starAngle) * radius - 10,
             child: Transform.rotate(
               angle: angle,
-              child: const Icon(Icons.star, color: yellow, size: 20),
+              child: const Icon(Icons.star, color: AppTheme.yellow, size: 20),
             ),
           );
         }),
@@ -211,10 +212,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       precacheImage(AssetImage(AppConfig.splashLogo), context);
     }
     final size = MediaQuery.of(context).size;
-    const primaryDark = Color(AppConstants.primaryColorDark);
-    const primary = Color(AppConstants.primaryColor);
-    const orange = Color(AppConstants.accentColor);
-    const yellow = Color(AppConstants.yellowAccent);
+    const primaryDark = AppTheme.primaryBlueDark;
+    const primary = AppTheme.primaryBlue;
+    const orange = AppTheme.accentOrange;
+    const yellow = AppTheme.yellow;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -375,7 +376,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       Text(
                         AppConstants.appName.split(' ')[1],
                         style: GoogleFonts.inter(
-                          color: const Color(AppConstants.accentColor),
+                          color: AppTheme.accentOrange,
                           fontSize: 42,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 2,

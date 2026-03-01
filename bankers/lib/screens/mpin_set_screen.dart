@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../services/api_service.dart';
 import 'main_shell_screen.dart';
@@ -166,7 +167,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
         ),
         backgroundColor: isError
             ? Colors.red
-            : const Color(AppConstants.successColor),
+            : AppTheme.success,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -175,10 +176,10 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const primaryBlueDark = Color(AppConstants.primaryColorDark);
-    const accentOrange = Color(AppConstants.accentColor);
-    const yellow = Color(AppConstants.yellowAccent);
+    const primaryBlue = AppTheme.primaryBlue;
+    const primaryBlueDark = AppTheme.primaryBlueDark;
+    const accentOrange = AppTheme.accentOrange;
+    const yellow = AppTheme.yellow;
 
     return PopScope(
       canPop: false,
@@ -358,7 +359,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                               decoration: InputDecoration(
                                                 counterText: '',
                                                 filled: true,
-                                                fillColor: const Color(AppConstants.mainBackground),
+                                                fillColor: AppTheme.mainBackground,
                                                 border: OutlineInputBorder(
                                                   borderRadius: BorderRadius.circular(18),
                                                   borderSide: BorderSide(

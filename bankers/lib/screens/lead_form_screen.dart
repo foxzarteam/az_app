@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_locale.dart';
 import '../utils/constants.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
@@ -45,7 +46,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(AppConstants.mainBackground),
+      backgroundColor: AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(
@@ -209,14 +210,14 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
             hintText: hint,
             hintStyle: GoogleFonts.inter(color: AppTheme.lightText, fontSize: 14),
             filled: true,
-            fillColor: const Color(AppConstants.mainBackground),
+            fillColor: AppTheme.mainBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(AppConstants.borderColor)),
+              borderSide: const BorderSide(color: AppTheme.borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(AppConstants.borderColor)),
+              borderSide: const BorderSide(color: AppTheme.borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -242,9 +243,9 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(AppConstants.mainBackground),
+        color: AppTheme.mainBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(AppConstants.borderColor)),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,9 +302,9 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
-            color: const Color(AppConstants.mainBackground),
+            color: AppTheme.mainBackground,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(AppConstants.borderColor)),
+            border: Border.all(color: AppTheme.borderColor),
           ),
           child: DropdownButtonFormField<String>(
             value: _selectedCategory,
@@ -402,12 +403,12 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       }
     } on Exception catch (e) {
       if (!mounted) return;
-      final message = e.toString().contains(AppConstants.msgLeadAlreadyExists)
-          ? AppConstants.msgLeadAlreadyExists
-          : 'An error occurred. Please try again.';
+      final key = e.toString().contains('msgLeadAlreadyExists')
+          ? 'msgLeadAlreadyExists'
+          : 'msgErrorTryAgain';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message, style: GoogleFonts.inter()),
+          content: Text(context.tOrRaw(key), style: GoogleFonts.inter()),
           backgroundColor: AppTheme.error,
         ),
       );

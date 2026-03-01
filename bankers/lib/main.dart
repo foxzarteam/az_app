@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'l10n/app_locale.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'utils/constants.dart';
@@ -14,25 +16,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inter = GoogleFonts.interTextTheme();
-    return MaterialApp(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(AppConstants.primaryColor),
-          primary: const Color(AppConstants.primaryColor),
-          secondary: const Color(AppConstants.accentColor),
-        ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(AppConstants.mainBackground),
-        fontFamily: GoogleFonts.inter().fontFamily,
-        textTheme: inter.apply(
-          bodyColor: AppTheme.primaryText,
-          displayColor: AppTheme.primaryText,
-        ),
+    return ChangeNotifierProvider<AppLocale>(
+      create: (_) => AppLocale(),
+      child: Consumer<AppLocale>(
+        builder: (_, appLocale, __) {
+          final inter = GoogleFonts.interTextTheme();
+          return MaterialApp(
+            title: appLocale.t('appName'),
+            debugShowCheckedModeBanner: false,
+            locale: Locale(appLocale.locale),
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppTheme.primaryBlue,
+                primary: AppTheme.primaryBlue,
+                secondary: AppTheme.accentOrange,
+              ),
+              useMaterial3: true,
+              scaffoldBackgroundColor: AppTheme.mainBackground,
+              fontFamily: GoogleFonts.inter().fontFamily,
+              textTheme: inter.apply(
+                bodyColor: AppTheme.primaryText,
+                displayColor: AppTheme.primaryText,
+              ),
+            ),
+            home: const SplashScreen(),
+          );
+        },
       ),
-      home: const SplashScreen(),
     );
   }
 }

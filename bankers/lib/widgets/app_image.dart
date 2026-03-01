@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// Loads image from app assets. Use paths from AppConfig.
 class AppImage extends StatelessWidget {
@@ -30,8 +31,8 @@ class AppImage extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: Colors.grey[200],
-      child: Icon(Icons.image_not_supported, color: Colors.grey[400], size: (height ?? 40) * 0.4),
+      color: AppTheme.secondaryBackground,
+      child: Icon(Icons.image_not_supported, color: AppTheme.lightText, size: (height ?? 40) * 0.4),
     );
   }
 }

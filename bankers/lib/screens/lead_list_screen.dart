@@ -18,7 +18,7 @@ class LeadListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(AppConstants.mainBackground),
+      backgroundColor: AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(
@@ -41,7 +41,7 @@ class LeadListScreen extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.surfaceWhite,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
@@ -59,14 +59,14 @@ class LeadListScreen extends StatelessWidget {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(AppConstants.mainBackground),
+                              color: AppTheme.mainBackground,
                               borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(16),
                                 topRight: Radius.circular(16),
                               ),
                               border: Border(
                                 bottom: BorderSide(
-                                  color: Colors.grey.withOpacity(0.2),
+                                  color: AppTheme.borderColor.withOpacity(0.2),
                                   width: 1,
                                 ),
                               ),
@@ -166,7 +166,7 @@ class LeadListScreen extends StatelessWidget {
                             },
                             separatorBuilder: (_, __) => Divider(
                               height: 1,
-                              color: Colors.grey.withOpacity(0.15),
+                              color: AppTheme.borderColor.withOpacity(0.15),
                             ),
                             itemCount: leads.length,
                           ),
@@ -189,30 +189,30 @@ class _StatusChip extends StatelessWidget {
   Color get _background {
     switch (status) {
       case 'approved':
-        return const Color(0xFFE1F8EE);
+        return AppTheme.statusSuccessBg;
       case 'in_process':
       case 'pending':
-        return const Color(0xFFE0ECFF);
+        return AppTheme.statusPendingBg;
       case 'rejected':
-        return const Color(0xFFFEE2E2);
+        return AppTheme.statusRejectedBg;
       case 'action_required':
-        return const Color(0xFFFFF7E6);
+        return AppTheme.statusActionRequiredBg;
       default:
-        return const Color(0xFFE5E7EB);
+        return AppTheme.statusOtherBg;
     }
   }
 
   Color get _textColor {
     switch (status) {
       case 'approved':
-        return const Color(AppConstants.successColor);
+        return AppTheme.success;
       case 'in_process':
       case 'pending':
-        return const Color(0xFF2563EB);
+        return AppTheme.statusPendingFg;
       case 'rejected':
-        return const Color(AppConstants.errorColor);
+        return AppTheme.error;
       case 'action_required':
-        return const Color(AppConstants.warningColor);
+        return AppTheme.warning;
       default:
         return AppTheme.secondaryText;
     }

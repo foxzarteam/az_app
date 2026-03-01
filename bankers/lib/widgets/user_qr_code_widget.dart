@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 
 /// Unique QR code per user. Same user = same QR every time (constant).
@@ -20,8 +21,8 @@ class UserQrCodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accentOrange = Color(AppConstants.accentColor);
-    const darkBlue = Color(AppConstants.primaryColor);
+    const accentOrange = AppTheme.accentOrange;
+    const darkBlue = AppTheme.primaryBlue;
 
     return Container(
       width: double.infinity,
@@ -73,7 +74,7 @@ class UserQrCodeWidget extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: const Color(AppConstants.primaryText),
+              color: AppTheme.primaryText,
             ),
             textAlign: TextAlign.center,
           ),
@@ -83,7 +84,7 @@ class UserQrCodeWidget extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: const Color(AppConstants.secondaryText),
+              color: AppTheme.secondaryText,
             ),
           ),
         ],

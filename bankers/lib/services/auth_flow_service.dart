@@ -80,7 +80,7 @@ class AuthFlowService {
       if (!accountExists) {
         return SignUpFlowResult(
           route: SignUpNextRoute.stayWithError,
-          errorMessage: AppConstants.msgNumberNotRegistered,
+          errorMessage: 'msgNumberNotRegistered',
           mobileNumber: mobileNumber,
           userName: userName,
         );

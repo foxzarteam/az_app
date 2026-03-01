@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_locale.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 import '../models/country_model.dart';
@@ -59,7 +61,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _errorMessage = AppConstants.msgFailedCreateAccount;
+            _errorMessage = 'msgFailedCreateAccount';
           });
         }
         return;
@@ -101,15 +103,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = AppConstants.msgErrorTryAgain;
+          _errorMessage = 'msgErrorTryAgain';
         });
       }
     }
   }
 
   void _showCountryPicker() {
-    const accentOrange = Color(AppConstants.accentColor);
-    const darkGrayText = Color(AppConstants.primaryText);
+    const accentOrange = AppTheme.accentOrange;
+    const darkGrayText = AppTheme.primaryText;
 
     showModalBottomSheet(
       context: context,
@@ -131,14 +133,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(AppConstants.borderColor),
+                color: AppTheme.borderColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Text(
-                AppConstants.msgSelectCountry,
+                context.t('msgSelectCountry'),
                 style: GoogleFonts.inter(
                   fontSize: 22,
                   fontWeight: FontWeight.w500,
@@ -171,7 +173,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: const Color(AppConstants.borderColor),
+                                color: AppTheme.borderColor,
                                 width: 1,
                               ),
                             ),
@@ -211,7 +213,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               fontWeight: FontWeight.w500,
                               color: isSelected
                                   ? accentOrange
-                                  : const Color(AppConstants.secondaryText),
+                                  : AppTheme.secondaryText,
                             ),
                           ),
                           if (isSelected) ...[
@@ -234,10 +236,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const primaryBlueDark = Color(AppConstants.primaryColorDark);
-    const accentOrange = Color(AppConstants.accentColor);
-    const yellow = Color(AppConstants.yellowAccent);
+    const primaryBlue = AppTheme.primaryBlue;
+    const primaryBlueDark = AppTheme.primaryBlueDark;
+    const accentOrange = AppTheme.accentOrange;
+    const yellow = AppTheme.yellow;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -400,8 +402,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     children: [
                                       Text(
                                         widget.isForgotMPIN
-                                            ? AppConstants.msgResetMpin
-                                            : AppConstants.msgGetStarted,
+                                            ? context.t('msgResetMpin')
+                                            : context.t('msgGetStarted'),
                                         style: GoogleFonts.inter(
                                           fontSize: 28,
                                           fontWeight: FontWeight.w500,
@@ -414,11 +416,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Mobile Number',
+                                            context.t('msgMobileNumber'),
                                             style: GoogleFonts.inter(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
-                                              color: const Color(AppConstants.primaryText),
+                                              color: AppTheme.primaryText,
                                             ),
                                           ),
                                           const SizedBox(height: 12),
@@ -428,7 +430,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                               borderRadius: BorderRadius.circular(18),
                                               border: Border.all(
                                                 color: _errorMessage != null
-                                                    ? const Color(AppConstants.errorColor)
+                                                    ? AppTheme.error
                                                     : accentOrange.withOpacity(0.4),
                                                 width: 2,
                                               ),
@@ -516,19 +518,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                       style: GoogleFonts.inter(
                                                         fontSize: 17,
                                                         fontWeight: FontWeight.w500,
-                                                        color: const Color(AppConstants.primaryText),
+                                                        color: AppTheme.primaryText,
                                                         letterSpacing: 1,
                                                       ),
                                                       decoration: InputDecoration(
-                                                        hintText: AppConstants.hintMobilePlaceholder,
+                                                        hintText: context.t('hintMobilePlaceholder'),
                                                         hintStyle: GoogleFonts.inter(
-                                                          color: const Color(AppConstants.lightText),
+                                                          color: AppTheme.lightText,
                                                           fontSize: 17,
                                                         ),
                                                         border: InputBorder.none,
                                                         counterText: '',
                                                       ),
-                                                      validator: (value) => mobileValidationError(value),
+                                                      validator: (value) {
+                                                        final k = mobileValidationError(value);
+                                                        return k == null ? null : context.t(k);
+                                                      },
                                                       onChanged: (value) {
                                                         setState(() {
                                                           _errorMessage = null;
@@ -584,7 +589,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                         children: [
                                                           Text(
-                                                            'Continue',
+                                                            context.t('msgContinue'),
                                                             style: GoogleFonts.inter(
                                                               fontSize: 17,
                                                               fontWeight: FontWeight.w500,
@@ -608,11 +613,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       const SizedBox(height: 16),
                                       Center(
                                         child: Text(
-                                          AppConstants.msgTermsPrivacy,
+                                          context.t('msgTermsPrivacy'),
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.inter(
                                             fontSize: 11,
-                                            color: const Color(AppConstants.lightText),
+                                            color: AppTheme.lightText,
                                           ),
                                         ),
                                       ),
@@ -638,7 +643,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               left: 0,
               right: 0,
               child: AnimatedErrorBanner(
-                message: _errorMessage!,
+                message: context.tOrRaw(_errorMessage!),
                 onDismiss: () => setState(() => _errorMessage = null),
               ),
             ),

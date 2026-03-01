@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/app_config.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
 import '../widgets/common_nav_bar.dart';
@@ -143,8 +144,6 @@ class _LeadsContentState extends State<LeadsContent> {
   }
 
   Widget _buildTotalLeadsCard(BuildContext context) {
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const primaryBlueDark = Color(AppConstants.primaryColorDark);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -152,15 +151,15 @@ class _LeadsContentState extends State<LeadsContent> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            primaryBlueDark,
-            primaryBlueDark.withOpacity(0.85),
-            primaryBlue.withOpacity(0.9),
+            AppTheme.primaryBlueDark,
+            AppTheme.primaryBlueDark.withOpacity(0.85),
+            AppTheme.primaryBlue.withOpacity(0.9),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: primaryBlue.withOpacity(0.35),
+            color: AppTheme.primaryBlue.withOpacity(0.35),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -180,7 +179,7 @@ class _LeadsContentState extends State<LeadsContent> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.white,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -189,13 +188,13 @@ class _LeadsContentState extends State<LeadsContent> {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.9),
+                      color: AppTheme.white.withOpacity(0.9),
                     ),
                   ),
                 ],
               ),
               Material(
-                color: Colors.white.withOpacity(0.25),
+                color: AppTheme.white.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(20),
                 child: InkWell(
                   onTap: () =>
@@ -211,11 +210,11 @@ class _LeadsContentState extends State<LeadsContent> {
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                            color: AppTheme.white,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
+                        const Icon(Icons.arrow_forward_rounded, color: AppTheme.white, size: 16),
                       ],
                     ),
                   ),
@@ -230,7 +229,7 @@ class _LeadsContentState extends State<LeadsContent> {
                 child: _buildLeadStatusChip(
                   AppConstants.labelSuccess,
                   _successCount,
-                  const Color(AppConstants.successColor),
+                  AppTheme.success,
                   Icons.check_rounded,
                   () => _openLeadList(
                     context,
@@ -244,7 +243,7 @@ class _LeadsContentState extends State<LeadsContent> {
                 child: _buildLeadStatusChip(
                   AppConstants.labelInProcess,
                   _inProcessCount,
-                  const Color(0xFF2563EB),
+                  AppTheme.statusPendingFg,
                   Icons.refresh_rounded,
                   () => _openLeadList(
                     context,
@@ -258,7 +257,7 @@ class _LeadsContentState extends State<LeadsContent> {
                 child: _buildLeadStatusChip(
                   AppConstants.labelRejected,
                   _rejectedCount,
-                  const Color(AppConstants.errorColor),
+                  AppTheme.error,
                   Icons.close_rounded,
                   () => _openLeadList(
                     context,
@@ -272,7 +271,7 @@ class _LeadsContentState extends State<LeadsContent> {
                 child: _buildLeadStatusChip(
                   AppConstants.labelActionRequired,
                   _actionRequiredCount,
-                  const Color(AppConstants.warningColor),
+                  AppTheme.warning,
                   Icons.warning_amber_rounded,
                   () => _openLeadList(
                     context,
@@ -304,11 +303,11 @@ class _LeadsContentState extends State<LeadsContent> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
           decoration: BoxDecoration(
-            color: const Color(AppConstants.cardBackground),
+            color: AppTheme.cardBackground,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: AppTheme.overlayDark(0.06),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -331,7 +330,7 @@ class _LeadsContentState extends State<LeadsContent> {
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: const Color(AppConstants.primaryText),
+                  color: AppTheme.primaryText,
                 ),
               ),
               const SizedBox(height: 2),
@@ -340,7 +339,7 @@ class _LeadsContentState extends State<LeadsContent> {
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-                  color: const Color(AppConstants.secondaryText),
+                  color: AppTheme.secondaryText,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -354,16 +353,14 @@ class _LeadsContentState extends State<LeadsContent> {
   }
 
   Widget _buildEarnRewardsCard(BuildContext context) {
-    const primaryBlue = Color(AppConstants.primaryColor);
-    const accentOrange = Color(AppConstants.accentColor);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(AppConstants.cardBackground),
+        color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: AppTheme.overlayDark(0.06),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -377,7 +374,7 @@ class _LeadsContentState extends State<LeadsContent> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: const Color(AppConstants.primaryText),
+              color: AppTheme.primaryText,
             ),
           ),
           const SizedBox(height: 4),
@@ -386,7 +383,7 @@ class _LeadsContentState extends State<LeadsContent> {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: const Color(AppConstants.secondaryText),
+              color: AppTheme.secondaryText,
             ),
           ),
           const SizedBox(height: 20),
@@ -401,9 +398,9 @@ class _LeadsContentState extends State<LeadsContent> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      primaryBlue.withOpacity(0.1),
-                      primaryBlue.withOpacity(0.06),
-                      accentOrange.withOpacity(0.06),
+                      AppTheme.primaryBlue.withOpacity(0.1),
+                      AppTheme.primaryBlue.withOpacity(0.06),
+                      AppTheme.accentOrange.withOpacity(0.06),
                     ],
                   ),
                 ),
@@ -411,10 +408,10 @@ class _LeadsContentState extends State<LeadsContent> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.emoji_events_rounded, size: 72, color: accentOrange.withOpacity(0.9)),
+                      Icon(Icons.emoji_events_rounded, size: 72, color: AppTheme.accentOrange.withOpacity(0.9)),
                       const SizedBox(width: 16),
-                      Icon(Icons.currency_rupee_rounded, size: 48, color: primaryBlue.withOpacity(0.8)),
-                      Icon(Icons.monetization_on_rounded, size: 40, color: const Color(AppConstants.warningColor).withOpacity(0.9)),
+                      Icon(Icons.currency_rupee_rounded, size: 48, color: AppTheme.primaryBlue.withOpacity(0.8)),
+                      Icon(Icons.monetization_on_rounded, size: 40, color: AppTheme.warning.withOpacity(0.9)),
                     ],
                   ),
                 ),
@@ -443,11 +440,10 @@ class _LeadsContentState extends State<LeadsContent> {
   }
 
   Widget _buildAddLeadButton(BuildContext context) {
-    const accentOrange = Color(AppConstants.accentColor);
     return Material(
-      color: accentOrange,
+      color: AppTheme.accentOrange,
       borderRadius: BorderRadius.circular(28),
-      shadowColor: accentOrange.withOpacity(0.5),
+      shadowColor: AppTheme.accentOrange.withOpacity(0.5),
       elevation: 8,
       child: InkWell(
         onTap: () async {
@@ -466,14 +462,14 @@ class _LeadsContentState extends State<LeadsContent> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+              const Icon(Icons.add_rounded, color: AppTheme.white, size: 24),
               const SizedBox(width: 10),
               Text(
                 AppConstants.buttonAddLeadNow,
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: AppTheme.white,
                 ),
               ),
             ],
@@ -492,7 +488,7 @@ class LeadsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(AppConstants.mainBackground),
+      backgroundColor: AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(

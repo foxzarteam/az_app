@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_locale.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
@@ -12,7 +13,9 @@ import '../widgets/user_qr_code_widget.dart';
 import 'add_lead_screen.dart';
 import 'dashboard_screen.dart';
 import 'leads_screen.dart';
+import 'payment_settings_screen.dart';
 import 'personal_details_screen.dart';
+import 'privacy_policy_screen.dart';
 
 /// Single shell: one header, one footer. Only the middle content changes with animation.
 class MainShellScreen extends StatefulWidget {
@@ -73,7 +76,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppTheme.overlayDark(0.5),
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => _buildProfileDrawer(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -108,7 +111,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surfaceWhite,
           boxShadow: [
             BoxShadow(
               color: Colors.black26,
@@ -127,7 +130,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppConstants.labelProfile,
+                      context.t('labelProfile'),
                       style: GoogleFonts.inter(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -139,7 +142,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(AppConstants.borderColor).withOpacity(0.2),
+                          color: AppTheme.borderColor.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -172,8 +175,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     const SizedBox(height: 32),
                     DrawerMenuItem(
                       icon: Icons.person_outline_rounded,
-                      title: AppConstants.labelPersonalDetails,
-                      subtitle: AppConstants.subtitlePersonalDetails,
+                      title: context.t('labelPersonalDetails'),
+                      subtitle: context.t('subtitlePersonalDetails'),
                       color: AppTheme.accentOrange,
                       onTap: () async {
                         Navigator.of(context).pop();
@@ -184,10 +187,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     const SizedBox(height: 16),
                     DrawerMenuItem(
                       icon: Icons.people_outline_rounded,
-                      title: AppConstants.labelMyLead,
-                      subtitle: AppConstants.subtitleMyLead,
+                      title: context.t('labelMyLead'),
+                      subtitle: context.t('subtitleMyLead'),
                       color: AppTheme.darkBlue,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _goTo(1);
+                      },
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
@@ -195,15 +201,29 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       title: AppConstants.labelPrivacyPolicy,
                       subtitle: AppConstants.subtitlePrivacyPolicy,
                       color: AppTheme.primaryBlue,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PrivacyPolicyScreen(userName: widget.userName),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
-                      icon: Icons.settings_outlined,
-                      title: AppConstants.labelSettings,
-                      subtitle: AppConstants.subtitleSettings,
+                      icon: Icons.payment_rounded,
+                      title: context.t('labelPaymentSettings'),
+                      subtitle: context.t('subtitlePaymentSettings'),
                       color: AppTheme.accentOrange,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PaymentSettingsScreen(userName: widget.userName),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -246,7 +266,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _currentIndex == 0 ? Colors.white : const Color(AppConstants.mainBackground),
+      backgroundColor: _currentIndex == 0 ? AppTheme.surfaceWhite : AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(
