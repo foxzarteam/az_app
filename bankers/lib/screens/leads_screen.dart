@@ -41,9 +41,6 @@ class _LeadsContentState extends State<LeadsContent> {
   @override
   void initState() {
     super.initState();
-    if (_cachedLeads != null) {
-      _leads = _cachedLeads!;
-    }
     _loadLeads();
   }
 
@@ -71,32 +68,27 @@ class _LeadsContentState extends State<LeadsContent> {
     }
   }
 
+  List<Map<String, dynamic>> _filterLeads(String? statusFilter) {
+    if (statusFilter == null) return _leads;
+    if (statusFilter == 'in_process') {
+      return _leads.where((l) {
+        final s = l['status'] as String?;
+        return s == 'in_process' || s == 'pending';
+      }).toList();
+    }
+    return _leads.where((l) => (l['status'] as String?) == statusFilter).toList();
+  }
+
   void _openLeadList(
     BuildContext context, {
     required String title,
     String? statusFilter,
   }) {
-    List<Map<String, dynamic>> filtered;
-    if (statusFilter == null) {
-      filtered = _leads;
-    } else if (statusFilter == 'in_process') {
-      filtered = _leads
-          .where(
-            (l) =>
-                (l['status'] as String?) == 'in_process' ||
-                (l['status'] as String?) == 'pending',
-          )
-          .toList();
-    } else {
-      filtered = _leads
-          .where((l) => (l['status'] as String?) == statusFilter)
-          .toList();
-    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => LeadListScreen(
           title: title,
-          leads: filtered,
+          leads: _filterLeads(statusFilter),
         ),
       ),
     );
@@ -238,7 +230,7 @@ class _LeadsContentState extends State<LeadsContent> {
                   () => _openLeadList(
                     context,
                     title: AppConstants.labelInProcess,
-                    statusFilter: 'pending',
+                    statusFilter: 'in_process',
                   ),
                 ),
               ),

@@ -23,26 +23,18 @@ class ApiService {
 
   Future<Map<String, dynamic>?> _parseResponse(
     Future<http.Response> Function() request,
-    String method,
-    String path,
   ) async {
     try {
       final res = await request();
-      if (res.statusCode >= 400) {
-        return null;
-      }
+      if (res.statusCode >= 400) return null;
       return jsonDecode(res.body) as Map<String, dynamic>?;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
   Future<Map<String, dynamic>?> _get(String path) async {
-    return _parseResponse(
-      () => http.get(Uri.parse('$_base$path')),
-      'GET',
-      path,
-    );
+    return _parseResponse(() => http.get(Uri.parse('$_base$path')));
   }
 
   Future<Map<String, dynamic>?> _post(
@@ -55,8 +47,6 @@ class ApiService {
         headers: _jsonHeaders,
         body: jsonEncode(body),
       ),
-      'POST',
-      path,
     );
   }
 
@@ -70,8 +60,6 @@ class ApiService {
         headers: _jsonHeaders,
         body: jsonEncode(body),
       ),
-      'PUT',
-      path,
     );
   }
 
@@ -85,8 +73,6 @@ class ApiService {
         headers: _jsonHeaders,
         body: jsonEncode(body),
       ),
-      'PATCH',
-      path,
     );
   }
 
@@ -258,19 +244,24 @@ class ApiService {
               : 'Invalid response from server.',
         );
       }
+      if (json == null) {
+        return CreateLeadResult(
+          success: false,
+          message: 'Invalid response from server.',
+        );
+      }
       final success = json['success'] == true;
       final data = json['data'];
       final msg = json['message'] as String?;
       if (success && data != null) {
         return CreateLeadResult(success: true);
       }
+      final fallback = res.statusCode >= 400
+          ? 'Request failed. Please try again.'
+          : 'Lead could not be saved. Please try again.';
       return CreateLeadResult(
         success: false,
-        message: msg?.trim().isNotEmpty == true
-            ? msg!
-            : (res.statusCode >= 400
-                ? 'Request failed. Please try again.'
-                : 'Lead could not be saved. Please try again.'),
+        message: (msg != null && msg.trim().isNotEmpty) ? msg : fallback,
       );
     } catch (e) {
       return CreateLeadResult(

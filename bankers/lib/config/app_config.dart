@@ -1,7 +1,7 @@
 class AppConfig {
   AppConfig._();
 
-  static const String baseUrl =  'https://az-app-khaki.vercel.app/api';
+  static const String baseUrl = 'https://az-app-khaki.vercel.app/api';
 
   static const String imagesPath = 'assets/images';
 

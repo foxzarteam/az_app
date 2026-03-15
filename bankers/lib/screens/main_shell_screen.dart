@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/app_locale.dart';
 import '../theme/app_theme.dart';
@@ -64,9 +63,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   Future<void> _loadMobileIfNeeded() async {
     if (_mobileLoaded) return;
-    final prefs = await SharedPreferences.getInstance();
+    final mobile = await UserPrefsHelper.getMobileNumber();
     if (mounted) {
-      _mobileNumber = prefs.getString(AppConstants.keyMobileNumber) ?? '';
+      _mobileNumber = mobile;
       _mobileLoaded = true;
     }
   }

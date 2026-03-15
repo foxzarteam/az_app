@@ -2,9 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_locale.dart';
 import '../utils/constants.dart';
+import '../utils/user_prefs_helper.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/common_nav_bar.dart';
@@ -373,11 +373,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
               );
             }).toList(),
             onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedCategory = value;
-                });
-              }
+              if (value != null) setState(() => _selectedCategory = value);
             },
           ),
         ),
@@ -405,11 +401,10 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final mobileNumber = prefs.getString(AppConstants.keyMobileNumber) ?? '';
-      
+      final details = await UserPrefsHelper.getUserDetails();
+      final mobileNumber = details['mobile'] ?? '';
       String? userId;
-      if (mobileNumber.isNotEmpty) {
+      if (mobileNumber.isNotEmpty && mobileNumber != AppConstants.defaultMaskedMobile) {
         final user = await ApiService.instance.getUserByMobile(mobileNumber);
         userId = user?['id']?.toString();
       }
