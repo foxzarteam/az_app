@@ -6,6 +6,7 @@ import { OtpModule } from './otp/otp.module';
 import { LeadsModule } from './leads/leads.module';
 import { BannersModule } from './banners/banners.module';
 import { PaymentAccountsModule } from './payment-accounts/payment-accounts.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PaymentAccountsModule } from './payment-accounts/payment-accounts.modul
     LeadsModule,
     BannersModule,
     PaymentAccountsModule,
+    WalletModule,
   ],
 })
 export class AppModule {}

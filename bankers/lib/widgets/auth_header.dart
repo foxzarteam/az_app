@@ -25,21 +25,20 @@ class AuthHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 100,
-            height: 100,
+            width: 110,
+            height: 110,
             decoration: BoxDecoration(
               color: AppTheme.white,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.accentOrange.withOpacity(0.4),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                  spreadRadius: 5,
+                  color: AppTheme.accentOrange.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Icon(icon, color: AppTheme.darkBlue, size: 50),
+            child: Icon(icon, color: AppTheme.primaryBlue, size: 56),
           ),
           const SizedBox(height: 24),
           Text(

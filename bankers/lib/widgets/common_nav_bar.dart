@@ -75,9 +75,7 @@ class CommonNavBar extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppTheme.accentOrange, AppTheme.accentOrange.withOpacity(0.8)],
-                      ),
+                      color: AppTheme.accentOrange,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: Colors.white.withOpacity(0.3),

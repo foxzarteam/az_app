@@ -46,6 +46,7 @@ dependencies:
   widgets_to_image: ^1.0.0
   path_provider: ^2.1.1
   provider: ^6.1.2
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/animation/
     - res/images/
 
 flutter_launcher_icons:

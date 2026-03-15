@@ -3,6 +3,7 @@ export const TABLE_USERS = 'users';
 export const TABLE_LEADS = 'leads';
 export const TABLE_BANNERS = 'banners';
 export const TABLE_PAYMENT_ACCOUNTS = 'payment_accounts';
+export const TABLE_WALLET = 'wallet';
 
 export const OTP_LENGTH = 4;
 export const OTP_EXPIRY_MINUTES = 5;

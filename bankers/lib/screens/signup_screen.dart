@@ -325,24 +325,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Container(
-                                      width: 100,
-                                      height: 100,
+                                      width: 110,
+                                      height: 110,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: accentOrange.withOpacity(0.4),
-                                            blurRadius: 30,
-                                            offset: const Offset(0, 10),
-                                            spreadRadius: 5,
+                                            color: accentOrange.withOpacity(0.3),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
                                           ),
                                         ],
                                       ),
                                       child: const Icon(
                                         Icons.account_balance_rounded,
-                                        color: primaryBlue,
-                                        size: 50,
+                                        color: AppTheme.primaryBlue,
+                                        size: 56,
                                       ),
                                     ),
                                     const SizedBox(height: 24),
@@ -452,9 +451,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                       vertical: 16,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      gradient: LinearGradient(
-                                                        colors: [accentOrange, accentOrange.withOpacity(0.8)],
-                                                      ),
+                                                      gradient: AppTheme.orangeGradient,
                                                       borderRadius: const BorderRadius.only(
                                                         topLeft: Radius.circular(16),
                                                         bottomLeft: Radius.circular(16),
@@ -552,9 +549,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         width: double.infinity,
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [accentOrange, accentOrange.withOpacity(0.8)],
-                                            ),
+                                            color: AppTheme.accentOrange,
                                             borderRadius: BorderRadius.circular(18),
                                             boxShadow: [
                                               BoxShadow(

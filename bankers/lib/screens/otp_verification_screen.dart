@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_locale.dart';
@@ -8,6 +9,10 @@ import '../utils/constants.dart';
 import '../widgets/message_banner.dart';
 import 'mpin_set_screen.dart';
 import 'mpin_login_screen.dart';
+
+class _OtpBackspaceIntent extends Intent {
+  const _OtpBackspaceIntent();
+}
 
 class OTPVerificationScreen extends StatefulWidget {
   final String mobileNumber;
@@ -310,24 +315,23 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Container(
-                                      width: 100,
-                                      height: 100,
+                                      width: 110,
+                                      height: 110,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: accentOrange.withOpacity(0.4),
-                                            blurRadius: 30,
-                                            offset: const Offset(0, 10),
-                                            spreadRadius: 5,
+                                            color: AppTheme.accentOrange.withOpacity(0.3),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
                                           ),
                                         ],
                                       ),
                                       child: const Icon(
                                         Icons.verified_user_rounded,
-                                        color: primaryBlue,
-                                        size: 50,
+                                        color: AppTheme.primaryBlue,
+                                        size: 56,
                                       ),
                                     ),
                                     const SizedBox(height: 24),
@@ -368,7 +372,28 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     const SizedBox(height: 24),
-                                    Row(
+                                    Shortcuts(
+                                      shortcuts: const {
+                                        SingleActivator(LogicalKeyboardKey.backspace): _OtpBackspaceIntent(),
+                                      },
+                                      child: Actions(
+                                        actions: {
+                                          _OtpBackspaceIntent: CallbackAction<_OtpBackspaceIntent>(
+                                            onInvoke: (_) {
+                                              for (var i = 0; i < AppConstants.otpLength; i++) {
+                                                if (_focusNodes[i].hasFocus &&
+                                                    _otpControllers[i].text.isEmpty &&
+                                                    i > 0) {
+                                                  _otpControllers[i - 1].clear();
+                                                  _focusNodes[i - 1].requestFocus();
+                                                  return null;
+                                                }
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        },
+                                        child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: List.generate(AppConstants.otpLength, (index) {
                                         return SizedBox(
@@ -377,54 +402,56 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                           child: TextField(
                                             controller: _otpControllers[index],
                                             focusNode: _focusNodes[index],
-                                            textAlign: TextAlign.center,
-                                            keyboardType: TextInputType.number,
-                                            maxLength: 1,
-                                            enabled: !_isLoading,
-                                            style: GoogleFonts.inter(
-                                              fontSize: 26,
-                                              fontWeight: FontWeight.w500,
-                                              color: accentOrange,
-                                              letterSpacing: 2,
-                                            ),
-                                            decoration: InputDecoration(
-                                              counterText: '',
-                                              filled: true,
-                                              fillColor: _errorMessage != null
-                                                  ? AppTheme.error.withOpacity(0.05)
-                                                  : AppTheme.mainBackground,
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(18),
-                                                borderSide: BorderSide(
-                                                  color: _errorMessage != null
-                                                      ? AppTheme.error
-                                                      : accentOrange.withOpacity(0.3),
-                                                  width: 2,
+                                              textAlign: TextAlign.center,
+                                              keyboardType: TextInputType.number,
+                                              maxLength: 1,
+                                              enabled: !_isLoading,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 26,
+                                                fontWeight: FontWeight.w500,
+                                                color: accentOrange,
+                                                letterSpacing: 2,
+                                              ),
+                                              decoration: InputDecoration(
+                                                counterText: '',
+                                                filled: true,
+                                                fillColor: _errorMessage != null
+                                                    ? AppTheme.error.withOpacity(0.05)
+                                                    : AppTheme.mainBackground,
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(18),
+                                                  borderSide: BorderSide(
+                                                    color: _errorMessage != null
+                                                        ? AppTheme.error
+                                                        : accentOrange.withOpacity(0.3),
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(18),
+                                                  borderSide: BorderSide(
+                                                    color: _errorMessage != null
+                                                        ? AppTheme.error
+                                                        : accentOrange.withOpacity(0.3),
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(18),
+                                                  borderSide: BorderSide(
+                                                    color: _errorMessage != null
+                                                        ? AppTheme.error
+                                                        : accentOrange,
+                                                    width: 3,
+                                                  ),
                                                 ),
                                               ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(18),
-                                                borderSide: BorderSide(
-                                                  color: _errorMessage != null
-                                                      ? AppTheme.error
-                                                      : accentOrange.withOpacity(0.3),
-                                                  width: 2,
-                                                ),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(18),
-                                                borderSide: BorderSide(
-                                                  color: _errorMessage != null
-                                                      ? AppTheme.error
-                                                      : accentOrange,
-                                                  width: 3,
-                                                ),
-                                              ),
-                                            ),
                                             onChanged: (value) => _onOtpChanged(index, value),
                                           ),
                                         );
                                       }),
+                                        ),
+                                      ),
                                     ),
 
                                     const SizedBox(height: 32),

@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
+import 'wallet_screen.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
   final String userName;
@@ -113,6 +114,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           CommonBottomNav(
             currentIndex: 0,
             onHomeTap: () => Navigator.of(context).pop(),
+            onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
           ),
         ],
       ),
@@ -338,7 +340,7 @@ class PersonalDetailsFormCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              gradient: isLoading ? LinearGradient(colors: [AppTheme.accentOrange.withOpacity(0.6), AppTheme.accentOrange.withOpacity(0.5)]) : AppTheme.orangeGradient,
+              color: isLoading ? AppTheme.accentOrange.withOpacity(0.6) : AppTheme.accentOrange,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [BoxShadow(color: AppTheme.accentOrange.withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6))],
             ),

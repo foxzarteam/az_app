@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
@@ -10,6 +11,10 @@ import '../widgets/pin_input_field.dart';
 import '../widgets/message_banner.dart';
 import 'main_shell_screen.dart';
 import 'signup_screen.dart';
+
+class _BackspaceIntent extends Intent {
+  const _BackspaceIntent();
+}
 
 class MPinLoginScreen extends StatefulWidget {
   const MPinLoginScreen({super.key});
@@ -187,17 +192,41 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                           const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: List.generate(4, (index) {
-                              return PinInputField(
-                                controller: _pinControllers[index],
-                                focusNode: _focusNodes[index],
-                                onChanged: (value) => _onPinChanged(index, value),
-                                hasError: _errorMessage != null,
-                                enabled: !_isLoading,
-                              );
-                            }),
+                          Shortcuts(
+                            shortcuts: const {
+                              SingleActivator(LogicalKeyboardKey.backspace): _BackspaceIntent(),
+                            },
+                            child: Actions(
+                              actions: {
+                                _BackspaceIntent: CallbackAction<_BackspaceIntent>(
+                                  onInvoke: (_) {
+                                    for (var i = 0; i < 4; i++) {
+                                      if (_focusNodes[i].hasFocus &&
+                                          _pinControllers[i].text.isEmpty &&
+                                          i > 0) {
+                                        _pinControllers[i - 1].clear();
+                                        setState(() => _pin = _pinControllers.map((c) => c.text).join());
+                                        _focusNodes[i - 1].requestFocus();
+                                        return null;
+                                      }
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: List.generate(4, (index) {
+                                  return PinInputField(
+                                    controller: _pinControllers[index],
+                                    focusNode: _focusNodes[index],
+                                    onChanged: (value) => _onPinChanged(index, value),
+                                    hasError: _errorMessage != null,
+                                    enabled: !_isLoading,
+                                  );
+                                }),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 32),
                           if (_isLoading)

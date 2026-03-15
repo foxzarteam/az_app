@@ -246,6 +246,14 @@ class ApiService {
     return false;
   }
 
+  /// Get wallet for user (balance, earning, redeem, currency) from DB. Returns null if not found or error.
+  Future<Map<String, dynamic>?> getWallet(String userId) async {
+    final json = await _get('/wallet/user/$userId');
+    if (json == null || json['success'] != true) return null;
+    final data = json['data'];
+    return data is Map<String, dynamic> ? data : null;
+  }
+
   /// Get payment accounts (UPI + Bank) for a user. Returns list of { payment_type, upi_id?, bank_name?, ifsc_code? }.
   Future<List<Map<String, dynamic>>> getPaymentAccounts(String userId) async {
     final json = await _get('/payment-accounts/user/$userId');

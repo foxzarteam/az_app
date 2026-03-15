@@ -1,76 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
 
-import '../models/lead_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/common_nav_bar.dart';
+import 'dashboard_screen.dart';
 import 'lead_form_screen.dart';
 
-const List<LeadProvider> _providers = [
-  LeadProvider(
-    id: '1',
-    name: 'Urban Plus',
-    description: 'Instant approval, minimal paperwork, up to ₹5 Lakh',
-    earnAmount: '₹450',
-    category: 'personal_loan',
-  ),
-  LeadProvider(
-    id: '2',
-    name: 'Digital Star',
-    description: 'Zero joining fee, rewards on spends, quick approval',
-    earnAmount: '₹200',
-    category: 'credit_card',
-  ),
-  LeadProvider(
-    id: '3',
-    name: 'Angel One',
-    description: 'Demat & trading, zero brokerage on equity delivery',
-    earnAmount: '₹400',
-    category: 'insurance',
-  ),
-];
-
-class AddLeadScreen extends StatefulWidget {
+class AddLeadScreen extends StatelessWidget {
   const AddLeadScreen({super.key});
-
-  @override
-  State<AddLeadScreen> createState() => _AddLeadScreenState();
-}
-
-class _AddLeadScreenState extends State<AddLeadScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _shineController;
-
-  @override
-  void initState() {
-    super.initState();
-    _shineController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2600),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _shineController.dispose();
-    super.dispose();
-  }
 
   static void _openLeadForm(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const LeadFormScreen()),
-    );
-  }
-
-  static void _showShareOptions(BuildContext context, LeadProvider provider) {
-    final message = '${provider.name}\n${provider.description}\n\n'
-        'Apply now: ${AppConstants.shareApplyLink}';
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _ShareSheetContent(message: message),
     );
   }
 
@@ -89,17 +31,13 @@ class _AddLeadScreenState extends State<AddLeadScreen>
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildManualButton(context),
+                  _buildShareHeader(),
                   const SizedBox(height: 24),
-                  ..._providers.map((p) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _ProviderCard(
-                          provider: p,
-                          onShare: () => _showShareOptions(context, p),
-                        ),
-                      )),
+                  _buildActionButtons(context),
+                  const SizedBox(height: 24),
+                  _buildProductList(context),
                 ],
               ),
             ),
@@ -109,394 +47,315 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     );
   }
 
-  Widget _buildManualButton(BuildContext context) {
-    return Material(
-      borderRadius: BorderRadius.circular(16),
-      elevation: 6,
-      shadowColor: AppTheme.primaryBlue.withOpacity(0.35),
-      child: InkWell(
+  Widget _buildShareHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.primaryText),
+            children: [
+              const TextSpan(text: 'Sell product '),
+              TextSpan(
+                text: '& earn money',
+                style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.accentOrange),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Share financial product links or add new leads directly to earn money.',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.secondaryText,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: _ActionButton(
+        icon: Icons.add_rounded,
+        label: 'ADD LEAD',
+        color: AppTheme.accentOrange,
         onTap: () => _openLeadForm(context),
-        borderRadius: BorderRadius.circular(16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: AnimatedBuilder(
-            animation: _shineController,
-            builder: (context, child) {
-              final t = Curves.easeInOut.transform(_shineController.value);
-              final alignment = Alignment(-1.2 + 2.4 * t, 0);
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppTheme.primaryBlueDark,
-                      AppTheme.primaryBlue,
-                    ],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 20,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.add_rounded,
-                                color: AppTheme.surfaceWhite, size: 24),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              AppConstants.buttonAddLeadManually,
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.surfaceWhite,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Soft shine overlay, slow and continuous
-                    IgnorePointer(
-                      ignoring: true,
-                      child: Align(
-                        alignment: alignment,
-                        child: Transform.rotate(
-                          angle: -0.35,
-                          child: FractionallySizedBox(
-                            widthFactor: 0.25,
-                            child: Container(
-                              height: 60,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    AppTheme.white.withOpacity(0.0),
-                                    AppTheme.white.withOpacity(0.16),
-                                    AppTheme.white.withOpacity(0.0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProviderCard extends StatelessWidget {
-  final LeadProvider provider;
-  final VoidCallback onShare;
-
-  const _ProviderCard({required this.provider, required this.onShare});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceWhite,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-                            color: AppTheme.overlayDark(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentOrange.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.accentOrange.withOpacity(0.3), width: 1),
-                ),
-                child: Text(
-                  '${AppConstants.earnUptoPrefix} ${provider.earnAmount}',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.accentOrange,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.accentOrange),
-              const SizedBox(width: 4),
-              Text(
-                AppConstants.labelInstantPayouts,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.accentOrange,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _iconForCategory(provider.category),
-                  color: AppTheme.primaryBlue,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      provider.name,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryText,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      provider.description,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        color: AppTheme.secondaryText,
-                        height: 1.35,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Icon(Icons.favorite_border_rounded, size: 20, color: AppTheme.secondaryText),
-              const SizedBox(width: 6),
-              Text(
-                AppConstants.labelFavourite,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.secondaryText,
-                ),
-              ),
-              const Spacer(),
-              Material(
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: onShare,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentOrange,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.accentOrange.withOpacity(0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          AppConstants.shareToCustomer,
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.surfaceWhite,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.share_rounded, color: AppTheme.white, size: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
 
-  IconData _iconForCategory(String category) {
-    switch (category) {
-      case 'personal_loan':
-        return Icons.account_balance_wallet_rounded;
-      case 'credit_card':
-        return Icons.credit_card_rounded;
-      case 'insurance':
-        return Icons.shield_rounded;
-      default:
-        return Icons.star_rounded;
-    }
-  }
-}
-
-class _ShareSheetContent extends StatelessWidget {
-  final String message;
-
-  const _ShareSheetContent({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceWhite,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppTheme.borderColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(2),
+  Widget _buildProductList(BuildContext context) {
+    final products = [
+      _ProductItem(title: 'Personal Loan', subtitle: 'Earn upto 4.00%', icon: Icons.account_balance_wallet_rounded, iconColor: AppTheme.accentOrange, showShareLink: true),
+      _ProductItem(title: 'Home Loan', subtitle: 'Earn upto 3.50%', icon: Icons.home_rounded, iconColor: AppTheme.primaryBlue, showShareLink: true),
+      _ProductItem(title: 'Business Loan', subtitle: 'Earn upto 2.50%', icon: Icons.business_rounded, iconColor: const Color(0xFF7C3AED), showShareLink: true),
+      _ProductItem(title: 'Credit Card', subtitle: 'Earn upto ₹3000', icon: Icons.credit_card_rounded, iconColor: AppTheme.socialMail, showShareLink: true),
+      _ProductItem(title: 'Insurance', subtitle: 'Earn upto ₹2000', icon: Icons.shield_rounded, iconColor: AppTheme.success, showShareLink: true),
+      _ProductItem(title: 'Vehicle Loan', subtitle: 'Earn upto 2.00%', icon: Icons.directions_car_rounded, iconColor: AppTheme.primaryBlue, showShareLink: true),
+    ];
+    return Column(
+      children: products
+          .map(
+            (p) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _ProductRow(
+                title: p.title,
+                subtitle: p.subtitle,
+                icon: p.icon,
+                iconColor: p.iconColor,
+                showShareLink: p.showShareLink,
+                onAdd: () => _openLeadForm(context),
+                onShareLink: () => DashboardScreen.showShareOptions(context),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            AppConstants.shareTitlePersonalLoan,
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryText,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _ShareOption(
-                icon: Icons.email_outlined,
-                label: AppConstants.shareLabelMail,
-                color: AppTheme.socialMail,
-                onTap: () => _share(context),
-              ),
-              _ShareOption(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: AppConstants.shareLabelWhatsApp,
-                color: AppTheme.socialWhatsApp,
-                onTap: () => _share(context),
-              ),
-              _ShareOption(
-                icon: Icons.camera_alt_outlined,
-                label: AppConstants.shareLabelInstagram,
-                color: AppTheme.socialInstagram,
-                onTap: () => _share(context),
-              ),
-            ],
-          ),
-        ],
-      ),
+          )
+          .toList(),
     );
-  }
-
-  Future<void> _share(BuildContext context) async {
-    Navigator.pop(context);
-    await Share.share(message, subject: 'Apply now - ${AppConstants.appName}');
   }
 }
 
-class _ShareOption extends StatelessWidget {
+class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _ShareOption({
+  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppTheme.white, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.white,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductItem {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final bool showShareLink;
+
+  _ProductItem({
+    required this.title,
+    required this.subtitle,
     required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
+    required this.iconColor,
+    this.showShareLink = false,
+  });
+}
+
+class _ZoomingShareLinkButton extends StatefulWidget {
+  final VoidCallback? onTap;
+
+  const _ZoomingShareLinkButton({this.onTap});
+
+  @override
+  State<_ZoomingShareLinkButton> createState() => _ZoomingShareLinkButtonState();
+}
+
+class _ZoomingShareLinkButtonState extends State<_ZoomingShareLinkButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2400),
+      vsync: this,
+    )..repeat(reverse: true);
+    _scale = Tween<double>(begin: 1.0, end: 1.06).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scale,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: const LinearGradient(
+            colors: [AppTheme.primaryBlue, AppTheme.accentOrange],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: const EdgeInsets.all(2),
+        child: Material(
+          color: AppTheme.white,
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.link_rounded, size: 16, color: AppTheme.primaryText),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Share Link',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final bool showShareLink;
+  final VoidCallback? onAdd;
+  final VoidCallback? onShareLink;
+
+  const _ProductRow({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    this.showShareLink = false,
+    this.onAdd,
+    this.onShareLink,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.overlayDark(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+              color: iconColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: iconColor.withOpacity(0.3)),
+            ),
+            child: Icon(icon, color: iconColor, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.accentOrange,
+                  ),
                 ),
               ],
             ),
-            child: Icon(icon, color: AppTheme.white, size: 28),
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.primaryText,
-            ),
-          ),
+          showShareLink
+              ? _ZoomingShareLinkButton(onTap: onShareLink)
+              : Material(
+                  color: AppTheme.white,
+                  borderRadius: BorderRadius.circular(10),
+                  child: InkWell(
+                    onTap: onAdd,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Text(
+                        'ADD',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryText,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
         ],
       ),
     );

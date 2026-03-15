@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../config/app_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../widgets/common_bottom_nav.dart';
 import '../widgets/app_image.dart';
 import 'add_lead_screen.dart';
 import 'lead_list_screen.dart';
+import 'wallet_screen.dart';
 
 /// Content-only widget for Leads (no nav/footer). Used by MainShellScreen.
 class LeadsContent extends StatefulWidget {
@@ -34,9 +36,6 @@ class _LeadsContentState extends State<LeadsContent> {
       .length;
   int get _rejectedCount =>
       _leads.where((l) => (l['status'] as String?) == 'rejected').length;
-  int get _actionRequiredCount =>
-      _leads.where((l) => (l['status'] as String?) == 'action_required').length;
-
   @override
   void initState() {
     super.initState();
@@ -266,20 +265,6 @@ class _LeadsContentState extends State<LeadsContent> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildLeadStatusChip(
-                  AppConstants.labelActionRequired,
-                  _actionRequiredCount,
-                  AppTheme.warning,
-                  Icons.warning_amber_rounded,
-                  () => _openLeadList(
-                    context,
-                    title: AppConstants.labelActionRequired,
-                    statusFilter: 'action_required',
-                  ),
-                ),
-              ),
             ],
           ),
         ],
@@ -391,7 +376,6 @@ class _LeadsContentState extends State<LeadsContent> {
             clipBehavior: Clip.none,
             children: [
               Container(
-                height: 200,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
@@ -404,32 +388,50 @@ class _LeadsContentState extends State<LeadsContent> {
                     ],
                   ),
                 ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.emoji_events_rounded, size: 72, color: AppTheme.accentOrange.withOpacity(0.9)),
-                      const SizedBox(width: 16),
-                      Icon(Icons.currency_rupee_rounded, size: 48, color: AppTheme.primaryBlue.withOpacity(0.8)),
-                      Icon(Icons.monetization_on_rounded, size: 40, color: AppTheme.warning.withOpacity(0.9)),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    height: 44,
-                    width: double.infinity,
-                    child: AppImage(
-                      assetPath: AppConfig.leadsPromo,
-                      fit: BoxFit.cover,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 220,
+                      child: Lottie.asset(
+                        AppConfig.moneyLottie,
+                        fit: BoxFit.contain,
+                        repeat: true,
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Material(
+                          color: AppTheme.primaryBlue,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const AddLeadScreen()),
+                              );
+                              if (context.mounted) _loadLeads();
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              child: Center(
+                                child: Text(
+                                  'Get Started',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -502,6 +504,7 @@ class LeadsScreen extends StatelessWidget {
             onHomeTap: () => Navigator.of(context).pop(),
             onLeadsTap: () {},
             onCenterTap: () {},
+            onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: userName))),
           ),
         ],
       ),

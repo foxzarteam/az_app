@@ -7,7 +7,6 @@ import { UpsertUserDto } from './dto/upsert-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateMpinDto } from './dto/update-mpin.dto';
 import { UpdateLoginStatusDto } from './dto/update-login-status.dto';
-
 const MPIN_LENGTH = 4;
 const DEFAULT_USER_NAME = 'User';
 
@@ -60,7 +59,10 @@ export class UsersService {
       }
       return null;
     }
-    return data as Record<string, unknown>;
+    const user = data as Record<string, unknown>;
+    const userId = user?.id != null ? String(user.id) : null;
+    if (userId) await this.walletService.createForUser(userId);
+    return user;
   }
 
   async updateMpin(mobile: string, dto: UpdateMpinDto): Promise<boolean> {

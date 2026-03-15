@@ -21,16 +21,17 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   final _panController = TextEditingController();
   final _mobileController = TextEditingController();
   final _fullNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _pincodeController = TextEditingController();
   bool _disclaimerChecked = false;
   String _selectedCategory = 'personal_loan';
   bool _isSubmitting = false;
 
   final List<Map<String, String>> _categories = [
     {'value': 'personal_loan', 'label': 'Personal Loan'},
-    {'value': 'insurance', 'label': 'Insurance'},
+    {'value': 'home_loan', 'label': 'Home Loan'},
+    {'value': 'business_loan', 'label': 'Business Loan'},
     {'value': 'credit_card', 'label': 'Credit Card'},
+    {'value': 'insurance', 'label': 'Insurance'},
+    {'value': 'vehicle_loan', 'label': 'Vehicle Loan'},
   ];
 
   @override
@@ -38,8 +39,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     _panController.dispose();
     _mobileController.dispose();
     _fullNameController.dispose();
-    _emailController.dispose();
-    _pincodeController.dispose();
     super.dispose();
   }
 
@@ -59,6 +58,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _buildFormHeader(),
                   _buildForm(),
                 ],
               ),
@@ -69,9 +69,42 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
     );
   }
 
+  Widget _buildFormHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.accentOrange.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.person_add_rounded,
+              color: AppTheme.accentOrange,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Text(
+            'Add New Lead',
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryText,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildForm() {
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -135,35 +168,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter full name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildField(
-                'Email',
-                _emailController,
-                hint: 'your@email.com',
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value != null && value.trim().isNotEmpty) {
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                      return 'Invalid email format';
-                    }
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildField(
-                'Pincode',
-                _pincodeController,
-                hint: 'Select or enter pincode',
-                validator: (value) {
-                  if (value != null && value.trim().isNotEmpty) {
-                    if (value.length != 6 || !RegExp(r'^\d{6}$').hasMatch(value)) {
-                      return 'Pincode must be 6 digits';
-                    }
                   }
                   return null;
                 },
@@ -368,8 +372,8 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         pan: _panController.text.trim().toUpperCase(),
         mobileNumber: _mobileController.text.trim(),
         fullName: _fullNameController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        pincode: _pincodeController.text.trim().isEmpty ? null : _pincodeController.text.trim(),
+        email: null,
+        pincode: null,
         requiredAmount: null,
         category: _selectedCategory,
         userId: userId,
@@ -387,8 +391,6 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         _panController.clear();
         _mobileController.clear();
         _fullNameController.clear();
-        _emailController.clear();
-        _pincodeController.clear();
         setState(() {
           _disclaimerChecked = false;
           _selectedCategory = 'personal_loan';

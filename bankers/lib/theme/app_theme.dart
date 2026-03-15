@@ -13,8 +13,8 @@ class AppTheme {
   static const Color primaryHover = Color(0xFF3D3AFF);
 
   // ─── Accent (CTA, highlights, badges) ─────────────────────────────────────
-  static const Color accentOrange = Color(0xFFFF6B35);
-  static const Color accentOrangeHover = Color(0xFFFF8C42);
+  static const Color accentOrange = Color(0xFFF24C00);
+  static const Color accentOrangeHover = Color(0xFFF26B20);
   static const Color yellow = Color(0xFFFFD700);
 
   // ─── Backgrounds ─────────────────────────────────────────────────────────
@@ -61,8 +61,11 @@ class AppTheme {
         colors: [primaryBlueDark, primaryBlue],
       );
 
-  static LinearGradient get orangeGradient => LinearGradient(
-        colors: [accentOrange, accentOrange.withOpacity(0.8)],
+  /// Gradient orange: #F24C00
+  static LinearGradient get orangeGradient => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFF24C00), Color(0xFFF26B20)],
       );
 
   // ─── Typography ──────────────────────────────────────────────────────────

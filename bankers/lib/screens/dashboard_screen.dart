@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../l10n/app_locale.dart';
+import '../services/api_service.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
 import '../utils/page_routes.dart';
@@ -15,9 +16,17 @@ import '../widgets/common_bottom_nav.dart';
 import '../widgets/drawer_menu_item.dart';
 import 'add_lead_screen.dart';
 import 'leads_screen.dart';
-import 'payment_settings_screen.dart';
+import 'wallet_screen.dart';
 import 'personal_details_screen.dart';
 import 'privacy_policy_screen.dart';
+
+String walletNumToDisplay(dynamic v) {
+  if (v == null) return '0.00';
+  if (v is int) return v == 0 ? '0.00' : v.toString();
+  if (v is double) return v.toStringAsFixed(2);
+  final s = v.toString().trim();
+  return s.isEmpty ? '0.00' : s;
+}
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
@@ -43,6 +52,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'credit_card': AppConfig.creditCardPromo,
     'insurance': AppConfig.insurancePromo,
   };
+
+  String _balanceStr = '0.00';
+  String _earningStr = '0.00';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWallet();
+  }
+
+  Future<void> _loadWallet() async {
+    final mobile = await UserPrefsHelper.getMobileNumber();
+    if (mobile.isEmpty || mobile == AppConstants.defaultMaskedMobile) return;
+    final user = await ApiService.instance.getUserByMobile(mobile);
+    final userId = user?['id']?.toString();
+    if (userId == null || userId.isEmpty) return;
+    final wallet = await ApiService.instance.getWallet(userId);
+    if (!mounted) return;
+    if (wallet != null) {
+      setState(() {
+        _balanceStr = walletNumToDisplay(wallet['balance']);
+        _earningStr = walletNumToDisplay(wallet['earning']);
+      });
+    }
+  }
 
   void _openPersonalDetails(BuildContext context) {
     Navigator.of(context).pop();
@@ -206,15 +240,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
-                      icon: Icons.payment_rounded,
-                      title: context.t('labelPaymentSettings'),
-                      subtitle: context.t('subtitlePaymentSettings'),
+                      icon: Icons.account_balance_wallet_rounded,
+                      title: context.t('labelWallet'),
+                      subtitle: context.t('subtitleWallet'),
                       color: AppTheme.accentOrange,
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => PaymentSettingsScreen(userName: widget.userName),
+                            builder: (_) => WalletScreen(userName: widget.userName),
                           ),
                         );
                       },
@@ -245,9 +279,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: _DashboardBodyBuilder(
               onShare: _showShareOptions,
               onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
+              onWalletTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
               carouselPaths: AppConfig.carousel,
               kycBannerPath: AppConfig.kycBanner,
               categoryPromoPaths: _categoryPromoUrls,
+              balanceStr: _balanceStr,
+              earningStr: _earningStr,
             ),
           ),
         ],
@@ -255,6 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: CommonBottomNav(
         currentIndex: 0,
         onLeadsTap: () {},
+        onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
       ),
     );
   }
@@ -396,11 +434,13 @@ class _ShareSheetContent extends StatelessWidget {
 class DashboardBody extends StatefulWidget {
   final VoidCallback onSharePersonalLoan;
   final VoidCallback? onAddLeadTap;
+  final VoidCallback? onWalletTap;
 
   const DashboardBody({
     super.key,
     required this.onSharePersonalLoan,
     this.onAddLeadTap,
+    this.onWalletTap,
   });
 
   @override
@@ -414,14 +454,42 @@ class _DashboardBodyState extends State<DashboardBody> {
     'insurance': AppConfig.insurancePromo,
   };
 
+  String _balanceStr = '0.00';
+  String _earningStr = '0.00';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWallet();
+  }
+
+  Future<void> _loadWallet() async {
+    final mobile = await UserPrefsHelper.getMobileNumber();
+    if (mobile.isEmpty || mobile == AppConstants.defaultMaskedMobile) return;
+    final user = await ApiService.instance.getUserByMobile(mobile);
+    final userId = user?['id']?.toString();
+    if (userId == null || userId.isEmpty) return;
+    final wallet = await ApiService.instance.getWallet(userId);
+    if (!mounted) return;
+    if (wallet != null) {
+      setState(() {
+        _balanceStr = walletNumToDisplay(wallet['balance']);
+        _earningStr = walletNumToDisplay(wallet['earning']);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return _DashboardBodyBuilder(
       onShare: widget.onSharePersonalLoan,
       onAddLeadTap: widget.onAddLeadTap,
+      onWalletTap: widget.onWalletTap,
       carouselPaths: AppConfig.carousel,
       kycBannerPath: AppConfig.kycBanner,
       categoryPromoPaths: _categoryPromoPaths,
+      balanceStr: _balanceStr,
+      earningStr: _earningStr,
     );
   }
 }
@@ -461,16 +529,22 @@ class _HorizontalScrollWithBarState extends State<_HorizontalScrollWithBar> {
 class _DashboardBodyBuilder extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback? onAddLeadTap;
+  final VoidCallback? onWalletTap;
   final List<String> carouselPaths;
   final String kycBannerPath;
   final Map<String, String> categoryPromoPaths;
+  final String balanceStr;
+  final String earningStr;
 
   const _DashboardBodyBuilder({
     required this.onShare,
     this.onAddLeadTap,
+    this.onWalletTap,
     this.carouselPaths = const [],
     required this.kycBannerPath,
     this.categoryPromoPaths = const {},
+    this.balanceStr = '0.00',
+    this.earningStr = '0.00',
   });
 
   @override
@@ -489,7 +563,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildBalanceCard(AppTheme.primaryBlueDark, AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.yellow),
+            _buildBalanceCard(AppTheme.primaryBlueDark, AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.yellow, onWalletTap, balanceStr: balanceStr, earningStr: earningStr),
             const SizedBox(height: 32),
             _buildSellAndEarnSection(AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.primaryBlueDark),
             const SizedBox(height: 24),
@@ -502,8 +576,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
     );
   }
 
-  Widget _buildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow) {
-    return _copyOfBuildBalanceCard(primaryDark, primary, accentOrange, yellow, onAddLeadTap);
+  Widget _buildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow, VoidCallback? onWalletTap, {String balanceStr = '0.00', String earningStr = '0.00'}) {
+    return _copyOfBuildBalanceCard(primaryDark, primary, accentOrange, yellow, onAddLeadTap, onBalanceCardTap: onWalletTap, balanceStr: balanceStr, earningStr: earningStr);
   }
 
   Widget _buildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark) {
@@ -539,9 +613,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
     );
   }
 
-
-  static Widget _copyOfBuildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow, VoidCallback? onAddLeadTap) {
-    return Container(
+  static Widget _copyOfBuildBalanceCard(Color primaryDark, Color primary, Color accentOrange, Color yellow, VoidCallback? onAddLeadTap, {VoidCallback? onBalanceCardTap, String balanceStr = '0.00', String earningStr = '0.00'}) {
+    final content = Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -564,13 +637,15 @@ class _DashboardBodyBuilder extends StatelessWidget {
                 ),
                 child: const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.white, size: 24),
               ),
+              const SizedBox(width: 10),
+              Text('Balance', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
               const Spacer(),
               GestureDetector(
                 onTap: onAddLeadTap,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [accentOrange, accentOrange.withOpacity(0.8)]),
+                    color: AppTheme.accentOrange,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [BoxShadow(color: accentOrange.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
@@ -580,9 +655,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          Text('Balance', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
-          const SizedBox(height: 6),
-          Text('₹0.00', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w500, color: AppTheme.white, letterSpacing: 0.8)),
+          Text('₹$balanceStr', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w500, color: AppTheme.white, letterSpacing: 0.8)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.only(top: 14),
@@ -591,13 +664,24 @@ class _DashboardBodyBuilder extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total Earning', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
-                Text('₹0.00', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.white)),
+                Text('₹$earningStr', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.white)),
               ],
             ),
           ),
         ],
       ),
     );
+    if (onBalanceCardTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onBalanceCardTap,
+          borderRadius: BorderRadius.circular(20),
+          child: content,
+        ),
+      );
+    }
+    return content;
   }
 
   Widget _copyOfBuildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark, Map<String, String> categoryPromoPaths, VoidCallback onCardTap) {
@@ -612,68 +696,93 @@ class _DashboardBodyBuilder extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          height: 132,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: AppTheme.socialMail, bottomColor: AppTheme.accentOrange.withOpacity(0.2), onTap: onCardTap))),
-              Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: AppTheme.success, bottomColor: AppTheme.accentOrange.withOpacity(0.2), onTap: onCardTap))),
-            ],
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.home_rounded, title: 'Home Loan', subtitle: 'Earn upto 3.50%', iconColor: primary, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.business_rounded, title: 'Business Loan', subtitle: 'Earn upto 2.50%', iconColor: const Color(0xFF7C3AED), bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: AppTheme.socialMail, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: AppTheme.success, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.directions_car_rounded, title: 'Vehicle Loan', subtitle: 'Earn upto 2.00%', iconColor: AppTheme.primaryBlue, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildServiceCard({required IconData icon, required String title, required String subtitle, required Color iconColor, required Color bottomColor, VoidCallback? onTap}) {
+    const double circleRadius = 28.0;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.accentOrange.withOpacity(0.2), width: 1.5),
-          boxShadow: [BoxShadow(color: AppTheme.accentOrange.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4), spreadRadius: 0)],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [iconColor.withOpacity(0.2), iconColor.withOpacity(0.1)]),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: iconColor.withOpacity(0.3), width: 1),
-                      ),
-                      child: Icon(icon, color: iconColor, size: 28),
-                    ),
-                    const Spacer(),
-                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.primaryText)),
-                    const SizedBox(height: 2),
-                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.accentOrange)),
-                  ],
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          Container(
+            width: double.infinity,
+            margin: EdgeInsets.only(top: circleRadius),
+            padding: const EdgeInsets.fromLTRB(10, circleRadius + 8, 10, 14),
+            decoration: BoxDecoration(
+              color: AppTheme.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.overlayDark(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-              ),
+              ],
             ),
-            Container(
-              height: 3,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.primaryText),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.accentOrange),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            child: Container(
+              width: circleRadius * 2,
+              height: circleRadius * 2,
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [bottomColor, bottomColor.withOpacity(0.5)]),
-                borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
+                color: iconColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: iconColor.withOpacity(0.4), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.overlayDark(0.1),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
+              child: Icon(icon, color: iconColor, size: 26),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -687,25 +796,22 @@ class _DashboardBodyBuilder extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [accentOrange.withOpacity(0.1), accentOrange.withOpacity(0.05)]),
+        color: AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accentOrange.withOpacity(0.3), width: 2),
-        boxShadow: [BoxShadow(color: accentOrange.withOpacity(0.15), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(color: AppTheme.borderColor, width: 1),
+        boxShadow: [BoxShadow(color: AppTheme.primaryText.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              width: 64,
-              height: 64,
-              child: AppImage(
-                assetPath: kycBannerPath,
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-              ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: darkBlue.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: darkBlue.withOpacity(0.25)),
             ),
+            child: Icon(Icons.verified_user_rounded, color: darkBlue, size: 32),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -720,8 +826,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: accentOrange.withOpacity(0.2), shape: BoxShape.circle),
-            child: const Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.accentOrange, size: 18),
+            decoration: BoxDecoration(color: AppTheme.surfaceWhite, shape: BoxShape.circle, border: Border.all(color: AppTheme.borderColor)),
+            child: Icon(Icons.arrow_forward_ios_rounded, color: darkBlue, size: 18),
           ),
         ],
       ),

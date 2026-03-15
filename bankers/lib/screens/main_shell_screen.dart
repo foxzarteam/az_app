@@ -13,7 +13,7 @@ import '../widgets/user_qr_code_widget.dart';
 import 'add_lead_screen.dart';
 import 'dashboard_screen.dart';
 import 'leads_screen.dart';
-import 'payment_settings_screen.dart';
+import 'wallet_screen.dart';
 import 'personal_details_screen.dart';
 import 'privacy_policy_screen.dart';
 
@@ -212,15 +212,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
-                      icon: Icons.payment_rounded,
-                      title: context.t('labelPaymentSettings'),
-                      subtitle: context.t('subtitlePaymentSettings'),
+                      icon: Icons.account_balance_wallet_rounded,
+                      title: context.t('labelWallet'),
+                      subtitle: context.t('subtitleWallet'),
                       color: AppTheme.accentOrange,
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => PaymentSettingsScreen(userName: widget.userName),
+                            builder: (_) => WalletScreen(userName: widget.userName),
                           ),
                         );
                       },
@@ -242,6 +242,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
           onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
+          onWalletTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
         );
       case 1:
         return const LeadsContent();
@@ -255,6 +256,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
           onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
+          onWalletTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
         );
     }
   }
@@ -308,7 +310,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             onLeadsTap: () => _goTo(1),
             onCenterTap: () {},
             onReferralTap: null,
-            onMyLeadsTap: null,
+            onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
           ),
         ],
       ),

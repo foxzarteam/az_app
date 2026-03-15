@@ -114,11 +114,22 @@ class AppConstants {
   static const String labelPrivacyPolicy = 'Privacy Policy';
   static const String labelSettings = 'Settings';
   static const String labelPaymentSettings = 'Payment Settings';
+  static const String labelWallet = 'Wallet';
+  static const String subtitleWallet = 'Withdraw & payment methods';
   static const String subtitlePersonalDetails = 'View and edit your profile';
   static const String subtitleMyLead = 'Manage your leads';
   static const String subtitlePrivacyPolicy = 'Read our privacy policy';
   static const String subtitleSettings = 'App preferences and more';
   static const String subtitlePaymentSettings = 'UPI & bank account details';
+  static const String labelEarning = 'Earning';
+  static const String subtitleEarning = 'Withdraw & payment methods';
+  static const String labelWithdraw = 'WITHDRAW';
+  static const String labelWithdrawAmount = 'Withdraw amount';
+  static const String hintEnterAmount = 'Enter amount';
+  static const String labelUpi = 'UPI';
+  static const String labelUpiSubtitle = 'GPay, PhonePe, BHIM & more';
+  static const String labelBankTransfer = 'Transfer to';
+  static const String labelBankAc = 'Bank A/C';
 
   // Leads screen
   static const String titleAddLeadsEarn = 'Add leads & earn instantly';
@@ -146,5 +157,5 @@ class AppConstants {
   static const String labelHome = 'Home';
   static const String labelLeads = 'Leads';
   static const String labelReferral = 'Referral';
-  static const String labelMyLeads = 'My Leads';
+  static const String labelMyLeads = 'Earning';
 }

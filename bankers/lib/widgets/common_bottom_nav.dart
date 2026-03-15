@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../l10n/app_locale.dart';
 import '../theme/app_theme.dart';
 
-/// Index: 0=Home, 1=Leads, 2=Referral, 3=My Leads. Center button is separate.
+/// Index: 0=Home, 1=Leads, 2=Referral, 3=Earning. Center button is separate.
 class CommonBottomNav extends StatefulWidget {
   final int currentIndex;
   final VoidCallback? onHomeTap;
@@ -27,29 +27,7 @@ class CommonBottomNav extends StatefulWidget {
   State<CommonBottomNav> createState() => _CommonBottomNavState();
 }
 
-class _CommonBottomNavState extends State<CommonBottomNav>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _gradientController;
-  late Animation<double> _gradientAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _gradientController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    _gradientAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _gradientController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _gradientController.dispose();
-    super.dispose();
-  }
-
+class _CommonBottomNavState extends State<CommonBottomNav> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -64,11 +42,14 @@ class _CommonBottomNavState extends State<CommonBottomNav>
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Center(
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
               _buildNavItem(
                 Icons.home_rounded,
                 context.t('labelHome'),
@@ -83,50 +64,33 @@ class _CommonBottomNavState extends State<CommonBottomNav>
                 AppTheme.primaryBlue,
                 onTap: widget.onLeadsTap,
               ),
-              AnimatedBuilder(
-                animation: _gradientAnimation,
-                builder: (context, child) {
-                  return Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: widget.onCenterTap,
-                      customBorder: const CircleBorder(),
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                            AppTheme.accentOrange,
-                            AppTheme.accentOrange.withOpacity(0.8),
-                            Color.lerp(
-                              AppTheme.accentOrange,
-                              AppTheme.yellow,
-                              _gradientAnimation.value,
-                            )!,
-                          ],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.accentOrange.withOpacity(0.5),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                              spreadRadius: 2,
-                            ),
-                          ],
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: widget.onCenterTap,
+                  customBorder: const CircleBorder(),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentOrange,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.accentOrange.withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                          spreadRadius: 2,
                         ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: AppTheme.white,
-                          size: 28,
-                        ),
-                      ),
+                      ],
                     ),
-                  );
-                },
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: AppTheme.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
               ),
               _buildNavItem(
                 Icons.people_rounded,
@@ -136,16 +100,17 @@ class _CommonBottomNavState extends State<CommonBottomNav>
                 onTap: widget.onReferralTap,
               ),
               _buildNavItem(
-                Icons.folder_outlined,
+                Icons.account_balance_wallet_rounded,
                 context.t('labelMyLeads'),
                 widget.currentIndex == 3,
                 AppTheme.primaryBlue,
                 onTap: widget.onMyLeadsTap,
               ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
-      ),
     );
   }
 

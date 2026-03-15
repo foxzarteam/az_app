@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
@@ -6,6 +7,10 @@ import '../utils/constants.dart';
 import '../services/api_service.dart';
 import 'main_shell_screen.dart';
 import 'signup_screen.dart';
+
+class _PinBackspaceIntent extends Intent {
+  const _PinBackspaceIntent();
+}
 
 class MPinSetScreen extends StatefulWidget {
   final String userName;
@@ -87,13 +92,10 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
         if (_pin.length == AppConstants.otpLength) _saveMPin();
       }
     } else {
-      // Backspace: go to previous box; from box 2/3/4 clear to first in one go
+      // Backspace: current box cleared, move focus to previous
       if (index > 0) {
-        for (var i = 0; i <= index; i++) {
-          _pinControllers[i].clear();
-        }
-        _pin = '';
-        _focusNodes[0].requestFocus();
+        setState(() => _pin = _pinControllers.map((c) => c.text).join());
+        _focusNodes[index - 1].requestFocus();
       }
     }
   }
@@ -278,24 +280,23 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
-                                        width: 100,
-                                        height: 100,
+                                        width: 110,
+                                        height: 110,
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: accentOrange.withOpacity(0.4),
-                                              blurRadius: 30,
-                                              offset: const Offset(0, 10),
-                                              spreadRadius: 5,
+                                              color: accentOrange.withOpacity(0.3),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
                                             ),
                                           ],
                                         ),
                                         child: const Icon(
                                           Icons.lock_outline_rounded,
-                                          color: primaryBlue,
-                                          size: 50,
+                                          color: AppTheme.accentOrange,
+                                          size: 56,
                                         ),
                                       ),
                                       const SizedBox(height: 24),
@@ -337,7 +338,29 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 24),
-                                      Row(
+                                      Shortcuts(
+                                        shortcuts: const {
+                                          SingleActivator(LogicalKeyboardKey.backspace): _PinBackspaceIntent(),
+                                        },
+                                        child: Actions(
+                                          actions: {
+                                            _PinBackspaceIntent: CallbackAction<_PinBackspaceIntent>(
+                                              onInvoke: (_) {
+                                                for (var i = 0; i < 4; i++) {
+                                                  if (_focusNodes[i].hasFocus &&
+                                                      _pinControllers[i].text.isEmpty &&
+                                                      i > 0) {
+                                                    _pinControllers[i - 1].clear();
+                                                    setState(() => _pin = _pinControllers.map((c) => c.text).join());
+                                                    _focusNodes[i - 1].requestFocus();
+                                                    return null;
+                                                  }
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          },
+                                          child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: List.generate(4, (index) {
                                           return SizedBox(
@@ -346,46 +369,48 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                             child: TextField(
                                               controller: _pinControllers[index],
                                               focusNode: _focusNodes[index],
-                                              textAlign: TextAlign.center,
-                                              keyboardType: TextInputType.number,
-                                              maxLength: 1,
-                                              obscureText: true,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 26,
-                                                fontWeight: FontWeight.w500,
-                                                color: accentOrange,
-                                                letterSpacing: 2,
-                                              ),
-                                              decoration: InputDecoration(
-                                                counterText: '',
-                                                filled: true,
-                                                fillColor: AppTheme.mainBackground,
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: accentOrange.withOpacity(0.3),
-                                                    width: 2,
+                                                textAlign: TextAlign.center,
+                                                keyboardType: TextInputType.number,
+                                                maxLength: 1,
+                                                obscureText: true,
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 26,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: accentOrange,
+                                                  letterSpacing: 2,
+                                                ),
+                                                decoration: InputDecoration(
+                                                  counterText: '',
+                                                  filled: true,
+                                                  fillColor: AppTheme.mainBackground,
+                                                  border: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(18),
+                                                    borderSide: BorderSide(
+                                                      color: accentOrange.withOpacity(0.3),
+                                                      width: 2,
+                                                    ),
+                                                  ),
+                                                  enabledBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(18),
+                                                    borderSide: BorderSide(
+                                                      color: accentOrange.withOpacity(0.3),
+                                                      width: 2,
+                                                    ),
+                                                  ),
+                                                  focusedBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(18),
+                                                    borderSide: BorderSide(
+                                                      color: accentOrange,
+                                                      width: 3,
+                                                    ),
                                                   ),
                                                 ),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: accentOrange.withOpacity(0.3),
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: accentOrange,
-                                                    width: 3,
-                                                  ),
-                                                ),
-                                              ),
-                                              onChanged: (value) => _onPinChanged(index, value),
+                                                onChanged: (value) => _onPinChanged(index, value),
                                             ),
                                           );
                                         }),
+                                          ),
+                                        ),
                                       ),
                                       const SizedBox(height: 32),
                                       Container(

@@ -17,4 +17,6 @@ class AppConfig {
   static const String creditCardPromo = '$imagesPath/credit_card_promo.png';
   static const String insurancePromo = '$imagesPath/insurance_promo.png';
   static const String splashLogo = 'assets/icon.png';
+  static const String moneyLottie = 'assets/animation/money.json';
+  static const String rupeesLottie = 'assets/animation/rupees.json';
 }
