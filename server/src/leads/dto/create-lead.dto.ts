@@ -34,8 +34,19 @@ export class CreateLeadDto {
   requiredAmount?: number;
 
   @IsString()
-  @IsIn(['personal_loan', 'insurance', 'credit_card'], {
-    message: 'Category must be one of: personal_loan, insurance, credit_card',
-  })
+  @IsIn(
+    [
+      'personal_loan',
+      'home_loan',
+      'business_loan',
+      'credit_card',
+      'insurance',
+      'vehicle_loan',
+    ],
+    {
+      message:
+        'Category must be one of: personal_loan, home_loan, business_loan, credit_card, insurance, vehicle_loan',
+    },
+  )
   category: string;
 }

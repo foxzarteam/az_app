@@ -33,13 +33,22 @@ class DashboardScreen extends StatefulWidget {
 
   const DashboardScreen({super.key, required this.userName});
 
+  /// Opens device native share sheet directly with template message (no popup).
   static void showShareOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => _ShareSheetContent(message: AppConstants.shareMessagePersonalLoan),
-    );
+    () async {
+      try {
+        await Share.share(
+          AppConstants.shareMessagePersonalLoan,
+          subject: AppConstants.shareSubjectPersonalLoan,
+        );
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.t('msgErrorTryAgain'))),
+          );
+        }
+      }
+    }();
   }
 
   @override
@@ -293,138 +302,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentIndex: 0,
         onLeadsTap: () {},
         onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
-      ),
-    );
-  }
-}
-
-class _ShareSheetContent extends StatelessWidget {
-  final String message;
-
-  const _ShareSheetContent({required this.message});
-
-  /// Shares the personal loan message (text). User can paste image manually if needed.
-  static Future<void> _shareWithImage(String message, String subject) async {
-    await Share.share(
-      message,
-      subject: subject,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.only(bottom: 20),
-            decoration: BoxDecoration(
-              color: AppTheme.borderColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Text(
-            context.t('shareTitlePersonalLoan'),
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.darkBlue,
-            ),
-          ),
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildShareOption(
-                context: context,
-                icon: Icons.email_outlined,
-                label: context.t('shareLabelMail'),
-                color: AppTheme.socialMail,
-                onTap: () async {
-                  Navigator.pop(context);
-                  await _shareWithImage(message, context.t('shareSubjectPersonalLoan'));
-                },
-              ),
-              _buildShareOption(
-                context: context,
-                icon: Icons.chat_bubble_outline,
-                label: context.t('shareLabelWhatsApp'),
-                color: AppTheme.socialWhatsApp,
-                onTap: () async {
-                  Navigator.pop(context);
-                  await _shareWithImage(message, context.t('shareSubjectPersonalLoan'));
-                },
-              ),
-              _buildShareOption(
-                context: context,
-                icon: Icons.camera_alt_outlined,
-                label: context.t('shareLabelInstagram'),
-                color: AppTheme.socialInstagram,
-                onTap: () async {
-                  Navigator.pop(context);
-                  await _shareWithImage(message, context.t('shareSubjectPersonalLoan'));
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShareOption({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: AppTheme.white, size: 32),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.primaryText,
-            ),
-          ),
-        ],
       ),
     );
   }

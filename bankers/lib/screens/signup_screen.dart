@@ -25,7 +25,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _mobileController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-  Country _selectedCountry = Country.countries[0];
 
   @override
   void dispose() {
@@ -107,130 +106,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
       }
     }
-  }
-
-  void _showCountryPicker() {
-    const accentOrange = AppTheme.accentOrange;
-    const darkGrayText = AppTheme.primaryText;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.borderColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text(
-                context.t('msgSelectCountry'),
-                style: GoogleFonts.inter(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  color: darkGrayText,
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: Country.countries.length,
-                itemBuilder: (context, index) {
-                  final country = Country.countries[index];
-                  final isSelected = country.code == _selectedCountry.code;
-
-                  return InkWell(
-                    onTap: () {
-                      setState(() => _selectedCountry = country);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isSelected ? accentOrange.withOpacity(0.1) : Colors.transparent,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: AppTheme.borderColor,
-                                width: 1,
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(7),
-                              child: Image.network(
-                                country.flagUrl,
-                                width: 40,
-                                height: 30,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Center(
-                                    child: Text(
-                                      country.flagEmoji,
-                                      style: const TextStyle(fontSize: 24),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              country.name,
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                                color: darkGrayText,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            country.dialCode,
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: isSelected
-                                  ? accentOrange
-                                  : AppTheme.secondaryText,
-                            ),
-                          ),
-                          if (isSelected) ...[
-                            const SizedBox(width: 12),
-                            Icon(Icons.check_circle, color: accentOrange, size: 22),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -443,66 +318,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             ),
                                             child: Row(
                                               children: [
-                                                GestureDetector(
-                                                  onTap: _showCountryPicker,
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      horizontal: 14,
-                                                      vertical: 16,
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                    vertical: 16,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    gradient: AppTheme.orangeGradient,
+                                                    borderRadius: const BorderRadius.only(
+                                                      topLeft: Radius.circular(16),
+                                                      bottomLeft: Radius.circular(16),
                                                     ),
-                                                    decoration: BoxDecoration(
-                                                      gradient: AppTheme.orangeGradient,
-                                                      borderRadius: const BorderRadius.only(
-                                                        topLeft: Radius.circular(16),
-                                                        bottomLeft: Radius.circular(16),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        Country.india.flagEmoji,
+                                                        style: const TextStyle(fontSize: 20),
                                                       ),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Container(
-                                                          width: 26,
-                                                          height: 18,
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(
-                                                              color: Colors.white,
-                                                              width: 1,
-                                                            ),
-                                                          ),
-                                                          child: ClipRRect(
-                                                            borderRadius: BorderRadius.circular(4),
-                                                            child: Image.network(
-                                                              _selectedCountry.flagUrl,
-                                                              fit: BoxFit.cover,
-                                                              errorBuilder: (context, error, stackTrace) {
-                                                                return Center(
-                                                                  child: Text(
-                                                                    _selectedCountry.flagEmoji,
-                                                                    style: const TextStyle(fontSize: 12),
-                                                                  ),
-                                                                );
-                                                              },
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 8),
-                                                        Text(
-                                                          _selectedCountry.dialCode,
-                                                          style: GoogleFonts.inter(
-                                                            fontSize: 15,
-                                                            fontWeight: FontWeight.w500,
-                                                            color: Colors.white,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 4),
-                                                        const Icon(
-                                                          Icons.arrow_drop_down,
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        Country.india.dialCode,
+                                                        style: GoogleFonts.inter(
+                                                          fontSize: 15,
+                                                          fontWeight: FontWeight.w500,
                                                           color: Colors.white,
-                                                          size: 18,
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                                 Expanded(
