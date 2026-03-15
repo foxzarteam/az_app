@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_locale.dart';
@@ -142,24 +143,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              _buildField(
-                'Mobile as per Aadhaar',
-                _mobileController,
-                hint: '10-digit number',
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter mobile number';
-                  }
-                  if (value.length != 10) {
-                    return 'Mobile must be 10 digits';
-                  }
-                  if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
-                    return 'Invalid mobile number';
-                  }
-                  return null;
-                },
-              ),
+              _buildMobileField(),
               const SizedBox(height: 16),
               _buildField(
                 'Full Name',
@@ -182,6 +166,68 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMobileField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Mobile as per Aadhaar',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.primaryText,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _mobileController,
+          keyboardType: TextInputType.phone,
+          maxLength: 10,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
+          validator: (value) {
+            final v = value?.trim() ?? '';
+            if (v.isEmpty) return 'Please enter mobile number';
+            if (v.length != 10) return 'Mobile must be 10 digits';
+            if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Invalid mobile number';
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: '10-digit number',
+            hintStyle: GoogleFonts.inter(color: AppTheme.lightText, fontSize: 14),
+            filled: true,
+            fillColor: AppTheme.mainBackground,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.borderColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppTheme.primaryBlue, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.error, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.error, width: 2),
+            ),
+            counterText: '',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          style: GoogleFonts.inter(fontSize: 15, color: AppTheme.primaryText),
+        ),
+      ],
     );
   }
 
@@ -368,7 +414,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         userId = user?['id']?.toString();
       }
 
-      final success = await ApiService.instance.createLead(
+      final result = await ApiService.instance.createLead(
         pan: _panController.text.trim().toUpperCase(),
         mobileNumber: _mobileController.text.trim(),
         fullName: _fullNameController.text.trim(),
@@ -381,7 +427,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
 
       if (!mounted) return;
 
-      if (success) {
+      if (result.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lead submitted successfully!', style: GoogleFonts.inter()),
@@ -396,29 +442,26 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
           _selectedCategory = 'personal_loan';
         });
       } else {
+        final errorMsg = result.message?.trim().isNotEmpty == true
+            ? result.message!
+            : 'Failed to submit lead. Please try again.';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to submit lead. Please try again.', style: GoogleFonts.inter()),
+            content: Text(errorMsg, style: GoogleFonts.inter()),
             backgroundColor: AppTheme.error,
           ),
         );
       }
-    } on Exception catch (e) {
-      if (!mounted) return;
-      final key = e.toString().contains('msgLeadAlreadyExists')
-          ? 'msgLeadAlreadyExists'
-          : 'msgErrorTryAgain';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.tOrRaw(key), style: GoogleFonts.inter()),
-          backgroundColor: AppTheme.error,
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An error occurred. Please try again.', style: GoogleFonts.inter()),
+          content: Text(
+            e.toString().contains('msgLeadAlreadyExists')
+                ? (context.tOrRaw('msgLeadAlreadyExists'))
+                : 'An error occurred. Please try again.',
+            style: GoogleFonts.inter(),
+          ),
           backgroundColor: AppTheme.error,
         ),
       );

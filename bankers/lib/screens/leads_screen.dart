@@ -22,8 +22,9 @@ class LeadsContent extends StatefulWidget {
 }
 
 class _LeadsContentState extends State<LeadsContent> {
-  bool _isLoading = true;
-  List<Map<String, dynamic>> _leads = const [];
+  static List<Map<String, dynamic>>? _cachedLeads;
+
+  List<Map<String, dynamic>> _leads = _cachedLeads ?? const [];
 
   int get _successCount =>
       _leads.where((l) => (l['status'] as String?) == 'approved').length;
@@ -36,47 +37,37 @@ class _LeadsContentState extends State<LeadsContent> {
       .length;
   int get _rejectedCount =>
       _leads.where((l) => (l['status'] as String?) == 'rejected').length;
+
   @override
   void initState() {
     super.initState();
+    if (_cachedLeads != null) {
+      _leads = _cachedLeads!;
+    }
     _loadLeads();
   }
 
   Future<void> _loadLeads() async {
-    setState(() {
-      _isLoading = true;
-    });
     try {
       final details = await UserPrefsHelper.getUserDetails();
       final mobile = details['mobile'] ?? '';
       if (mobile.isEmpty || mobile == AppConstants.defaultMaskedMobile) {
-        setState(() {
-          _leads = const [];
-          _isLoading = false;
-        });
+        if (mounted) setState(() => _leads = const []);
         return;
       }
       final user = await ApiService.instance.getUserByMobile(mobile);
       final userId = user?['id']?.toString();
       if (userId == null || userId.isEmpty) {
-        setState(() {
-          _leads = const [];
-          _isLoading = false;
-        });
+        if (mounted) setState(() => _leads = const []);
         return;
       }
       final leads = await ApiService.instance.getLeadsByUserId(userId);
       if (!mounted) return;
-      setState(() {
-        _leads = leads;
-        _isLoading = false;
-      });
+      _cachedLeads = leads;
+      setState(() => _leads = leads);
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _leads = const [];
-        _isLoading = false;
-      });
+      setState(() => _leads = _cachedLeads ?? const []);
     }
   }
 
@@ -283,7 +274,7 @@ class _LeadsContentState extends State<LeadsContent> {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: _isLoading || count == 0 ? null : onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -311,7 +302,7 @@ class _LeadsContentState extends State<LeadsContent> {
               ),
               const SizedBox(height: 10),
               Text(
-                _isLoading ? '-' : '$count',
+                '$count',
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,

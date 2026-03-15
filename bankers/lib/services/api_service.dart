@@ -7,6 +7,12 @@ import '../models/otp_models.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 
+class CreateLeadResult {
+  final bool success;
+  final String? message;
+  const CreateLeadResult({required this.success, this.message});
+}
+
 class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
@@ -215,7 +221,7 @@ class ApiService {
     return [];
   }
 
-  Future<bool> createLead({
+  Future<CreateLeadResult> createLead({
     required String pan,
     required String mobileNumber,
     required String fullName,
@@ -235,15 +241,43 @@ class ApiService {
       if (requiredAmount != null) 'requiredAmount': requiredAmount,
       if (userId != null && userId.isNotEmpty) 'userId': userId,
     };
-    final json = await _post('/leads', body: body);
-    if (json == null) return false;
-    if (json['success'] == true) return true;
-    final msg = json['message'] as String?;
-    if (msg != null &&
-        msg.toLowerCase().contains('already exists')) {
-      throw Exception('msgLeadAlreadyExists');
+    try {
+      final res = await http.post(
+        Uri.parse('$_base/leads'),
+        headers: _jsonHeaders,
+        body: jsonEncode(body),
+      );
+      Map<String, dynamic>? json;
+      try {
+        json = jsonDecode(res.body) as Map<String, dynamic>?;
+      } catch (_) {
+        return CreateLeadResult(
+          success: false,
+          message: res.statusCode >= 400
+              ? 'Server error. Please try again.'
+              : 'Invalid response from server.',
+        );
+      }
+      final success = json['success'] == true;
+      final data = json['data'];
+      final msg = json['message'] as String?;
+      if (success && data != null) {
+        return CreateLeadResult(success: true);
+      }
+      return CreateLeadResult(
+        success: false,
+        message: msg?.trim().isNotEmpty == true
+            ? msg!
+            : (res.statusCode >= 400
+                ? 'Request failed. Please try again.'
+                : 'Lead could not be saved. Please try again.'),
+      );
+    } catch (e) {
+      return CreateLeadResult(
+        success: false,
+        message: 'Network error. Check connection and try again.',
+      );
     }
-    return false;
   }
 
   /// Get wallet for user (balance, earning, redeem, currency) from DB. Returns null if not found or error.

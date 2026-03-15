@@ -35,11 +35,16 @@ class DashboardScreen extends StatefulWidget {
 
   /// Opens device native share sheet directly with template message (no popup).
   static void showShareOptions(BuildContext context) {
+    showShareForProduct(context, 'Personal Loan');
+  }
+
+  /// Opens share sheet with product-specific template (e.g. Personal Loan, Home Loan). No navigation to lead page.
+  static void showShareForProduct(BuildContext context, String productTitle) {
     () async {
       try {
         await Share.share(
-          AppConstants.shareMessagePersonalLoan,
-          subject: AppConstants.shareSubjectPersonalLoan,
+          AppConstants.shareMessageForProduct(productTitle),
+          subject: AppConstants.shareSubjectForProduct(productTitle),
         );
       } catch (_) {
         if (context.mounted) {
@@ -442,7 +447,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
           children: [
             _buildBalanceCard(AppTheme.primaryBlueDark, AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.yellow, onWalletTap, balanceStr: balanceStr, earningStr: earningStr),
             const SizedBox(height: 32),
-            _buildSellAndEarnSection(AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.primaryBlueDark),
+            _buildSellAndEarnSection(context, AppTheme.primaryBlue, AppTheme.accentOrange, AppTheme.primaryBlueDark),
             const SizedBox(height: 24),
             _buildCarouselBanner(),
             const SizedBox(height: 24),
@@ -457,8 +462,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
     return _copyOfBuildBalanceCard(primaryDark, primary, accentOrange, yellow, onAddLeadTap, onBalanceCardTap: onWalletTap, balanceStr: balanceStr, earningStr: earningStr);
   }
 
-  Widget _buildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark) {
-    return _copyOfBuildSellAndEarnSection(primary, accentOrange, primaryDark, categoryPromoPaths, onAddLeadTap ?? onShare);
+  Widget _buildSellAndEarnSection(BuildContext context, Color primary, Color accentOrange, Color primaryDark) {
+    return _copyOfBuildSellAndEarnSection(context, primary, accentOrange, primaryDark, categoryPromoPaths);
   }
 
   Widget _buildKYCBanner(Color darkBlue, Color accentOrange) {
@@ -561,7 +566,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
     return content;
   }
 
-  Widget _copyOfBuildSellAndEarnSection(Color primary, Color accentOrange, Color primaryDark, Map<String, String> categoryPromoPaths, VoidCallback onCardTap) {
+  Widget _copyOfBuildSellAndEarnSection(BuildContext context, Color primary, Color accentOrange, Color primaryDark, Map<String, String> categoryPromoPaths) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -576,18 +581,18 @@ class _DashboardBodyBuilder extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.home_rounded, title: 'Home Loan', subtitle: 'Earn upto 3.50%', iconColor: primary, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.business_rounded, title: 'Business Loan', subtitle: 'Earn upto 2.50%', iconColor: const Color(0xFF7C3AED), bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withOpacity(0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Personal Loan')))),
+            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.home_rounded, title: 'Home Loan', subtitle: 'Earn upto 3.50%', iconColor: primary, bottomColor: accentOrange.withOpacity(0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Home Loan')))),
+            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.business_rounded, title: 'Business Loan', subtitle: 'Earn upto 2.50%', iconColor: const Color(0xFF7C3AED), bottomColor: accentOrange.withOpacity(0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Business Loan')))),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: AppTheme.socialMail, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: AppTheme.success, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
-            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.directions_car_rounded, title: 'Vehicle Loan', subtitle: 'Earn upto 2.00%', iconColor: AppTheme.primaryBlue, bottomColor: accentOrange.withOpacity(0.2), onTap: onCardTap))),
+            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: AppTheme.socialMail, bottomColor: accentOrange.withOpacity(0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Credit Card')))),
+            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: AppTheme.success, bottomColor: accentOrange.withOpacity(0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Insurance')))),
+            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.directions_car_rounded, title: 'Vehicle Loan', subtitle: 'Earn upto 2.00%', iconColor: AppTheme.primaryBlue, bottomColor: accentOrange.withOpacity(0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Vehicle Loan')))),
           ],
         ),
       ],

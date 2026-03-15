@@ -91,9 +91,16 @@ class AppConstants {
   static const String msgEnterBankNameAndIfsc = 'Enter bank name and IFSC code';
   static const String labelEdit = 'Edit';
 
-  // Dashboard / Share — default message + apply link (image shared from assets)
+  // Dashboard / Share — Apni Zaroorat service URLs
   static const String shareTitlePersonalLoan = 'Share Personal Loan';
-  static const String shareApplyLink = 'https://example.com/apply';
+  static const String _shareBaseUrl = 'https://www.apnizaroorat.com/services';
+
+  /// Apply URL for the selected product (Personal Loan, Home Loan, Credit Card, etc.).
+  static String shareApplyLinkForProduct(String productName) {
+    final slug = productName.toLowerCase().replaceAll(' ', '-');
+    return '$_shareBaseUrl/$slug';
+  }
+
   static String get shareMessagePersonalLoan =>
       'Hello 👋\n\n'
       'You can now get a 100% digital personal loan without any paperwork.\n\n'
@@ -101,8 +108,23 @@ class AppConstants {
       '✅ Hassle-Free Process\n'
       '✅ Quick Approval\n'
       '💰 Loan up to ₹5 Lakhs\n\n'
-      'Apply Now : $shareApplyLink';
+      'Apply Now : ${shareApplyLinkForProduct('Personal Loan')}';
   static const String shareSubjectPersonalLoan = 'Instant Personal Loan - 100% Digital, Up to ₹5 Lakh';
+
+  /// Template message and subject for share sheet by product (e.g. Personal Loan, Home Loan). Uses Apni Zaroorat URL for that product.
+  static String shareMessageForProduct(String productName) {
+    final applyUrl = shareApplyLinkForProduct(productName);
+    return 'Hello 👋\n\n'
+        'You can now get a 100% digital $productName without any paperwork.\n\n'
+        '✅ Instant Process\n'
+        '✅ Hassle-Free\n'
+        '✅ Quick Approval\n'
+        '💰 Best offers\n\n'
+        'Apply Now : $applyUrl';
+  }
+  static String shareSubjectForProduct(String productName) =>
+      'Instant $productName - 100% Digital';
+
   static const String shareLabelMail = 'Mail';
   static const String shareLabelWhatsApp = 'WhatsApp';
   static const String shareLabelInstagram = 'Instagram';

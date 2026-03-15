@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_locale.dart';
@@ -356,6 +357,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                       controller: _mobileController,
                                                       keyboardType: TextInputType.phone,
                                                       maxLength: 10,
+                                                      inputFormatters: [
+                                                        FilteringTextInputFormatter.digitsOnly,
+                                                        LengthLimitingTextInputFormatter(10),
+                                                      ],
                                                       style: GoogleFonts.inter(
                                                         fontSize: 17,
                                                         fontWeight: FontWeight.w500,

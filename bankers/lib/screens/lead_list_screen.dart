@@ -30,7 +30,7 @@ class LeadListScreen extends StatelessWidget {
             child: leads.isEmpty
                 ? Center(
                     child: Text(
-                      'No leads found',
+                      'No lead record found',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         color: AppTheme.secondaryText,
@@ -51,129 +51,201 @@ class LeadListScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.mainBackground,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16),
-                              ),
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: AppTheme.borderColor.withOpacity(0.2),
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 4,
-                                  child: Text(
-                                    'Name',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.secondaryText,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    'Number',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.secondaryText,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    'Status',
-                                    textAlign: TextAlign.right,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.secondaryText,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              final lead = leads[index];
-                              final name = (lead['full_name'] ?? '') as String;
-                              final mobile =
-                                  (lead['mobile_number'] ?? '') as String;
-                              final status =
-                                  (lead['status'] ?? '') as String;
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final maxH = (constraints.maxHeight.isFinite && constraints.maxHeight > 0)
+                              ? constraints.maxHeight
+                              : 400.0;
+                          return Scrollbar(
+                            thumbVisibility: true,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                width: 380,
+                                height: maxH,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      flex: 4,
-                                      child: Text(
-                                        name.isEmpty ? 'Unnamed Lead' : name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                          color: AppTheme.primaryText,
+                                    Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppTheme.primaryBlue.withOpacity(0.08),
+                                        AppTheme.primaryBlue.withOpacity(0.04),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16),
+                                      topRight: Radius.circular(16),
+                                    ),
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: AppTheme.borderColor.withOpacity(0.3),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 126,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.person_outline_rounded,
+                                              size: 18,
+                                              color: AppTheme.primaryBlue,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                              child: Text(
+                                                'Name',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppTheme.primaryText,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        mobile,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 13,
-                                          color: AppTheme.secondaryText,
+                                      SizedBox(
+                                        width: 116,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.phone_outlined,
+                                              size: 18,
+                                              color: AppTheme.primaryBlue,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                              child: Text(
+                                                'Number',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppTheme.primaryText,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: _StatusChip(status: status),
+                                      SizedBox(
+                                        width: 96,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            Icon(
+                                              Icons.pending_actions_rounded,
+                                              size: 18,
+                                              color: AppTheme.primaryBlue,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                              child: Text(
+                                                'Status',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppTheme.primaryText,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: ListView.separated(
+                                    itemBuilder: (context, index) {
+                                    final lead = leads[index];
+                                    final name = (lead['full_name'] ?? '') as String;
+                                    final mobile =
+                                        (lead['mobile_number'] ?? '') as String;
+                                    final status =
+                                        (lead['status'] ?? '') as String;
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      color: index.isEven
+                                          ? Colors.transparent
+                                          : AppTheme.borderColor.withOpacity(0.06),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 126,
+                                            child: Text(
+                                              name.isEmpty ? 'Unnamed Lead' : name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                color: AppTheme.primaryText,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 116,
+                                            child: Text(
+                                              mobile,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                color: AppTheme.secondaryText,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 96,
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: _StatusChip(status: status),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  separatorBuilder: (_, __) => Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                    color: AppTheme.borderColor.withOpacity(0.2),
+                                  ),
+                                    itemCount: leads.length,
+                                  ),
+                                ),
                                   ],
                                 ),
-                              );
-                            },
-                            separatorBuilder: (_, __) => Divider(
-                              height: 1,
-                              color: AppTheme.borderColor.withOpacity(0.15),
+                              ),
                             ),
-                            itemCount: leads.length,
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    ),
                   ),
+          ),
           ),
         ],
       ),
