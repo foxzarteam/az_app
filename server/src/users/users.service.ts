@@ -60,8 +60,6 @@ export class UsersService {
       return null;
     }
     const user = data as Record<string, unknown>;
-    const userId = user?.id != null ? String(user.id) : null;
-    if (userId) await this.walletService.createForUser(userId);
     return user;
   }
 
