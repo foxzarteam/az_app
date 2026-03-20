@@ -26,7 +26,8 @@ export class OtpController {
 
   @Get('live')
   live() {
-    const live = this.config.get<string>('LIVE') === 'true';
+    const raw = (this.config.get<string>('LIVE') ?? '').toLowerCase().trim();
+    const live = raw === 'true' || raw === '1';
     return { live };
   }
 
@@ -34,7 +35,8 @@ export class OtpController {
   dev(@Res() res: Response) {
     const isProduction = this.config.get<string>('NODE_ENV') === 'production';
     const allowOtpDev = this.config.get<string>('ALLOW_OTP_DEV') === 'true';
-    const live = this.config.get<string>('LIVE') === 'true';
+    const rawLive = (this.config.get<string>('LIVE') ?? '').toLowerCase().trim();
+    const live = rawLive === 'true' || rawLive === '1';
     if (isProduction && !allowOtpDev) {
       return res.status(404).json({ error: 'Not found' });
     }
