@@ -159,6 +159,24 @@ export class OtpService {
     return [...this.devOtps];
   }
 
+  // Dev endpoint helper: query latest OTP sessions from DB (works in serverless).
+  async getLatestOtpSessions(
+    limit = 10,
+  ): Promise<Array<{ mobile_number: string; otp_code: string; created_at: string }>> {
+    const { data, error } = await this.otpSessions
+      .select('mobile_number, otp_code, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !Array.isArray(data)) return [];
+
+    return data.map((row: any) => ({
+      mobile_number: String(row.mobile_number ?? ''),
+      otp_code: String(row.otp_code ?? ''),
+      created_at: String(row.created_at ?? ''),
+    }));
+  }
+
   async verify(dto: VerifyOtpDto): Promise<OtpResult> {
     const now = getCurrentIsoTime();
     const { data: rows, error } = await this.otpSessions

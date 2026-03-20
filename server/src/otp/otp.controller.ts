@@ -31,11 +31,19 @@ export class OtpController {
     if (isProduction && !allowOtpDev) {
       return res.status(404).json({ error: 'Not found' });
     }
-    const entries = this.otpService.getDevOtps();
-    const rows = entries
-      .map((e) => `<tr><td>${this.escapeHtml(e.mobile)}</td><td><strong>${e.otp}</strong></td><td>${this.escapeHtml(e.at)}</td></tr>`)
-      .join('');
-    const html = `<!DOCTYPE html>
+
+    // Serverless-safe: read from DB instead of relying on in-memory devOtps.
+    this.otpService.getLatestOtpSessions(10).then((entries) => {
+      const rows = entries
+        .map(
+          (e) =>
+            `<tr><td>${this.escapeHtml(e.mobile_number)}</td><td><strong>${e.otp_code}</strong></td><td>${this.escapeHtml(
+              e.created_at,
+            )}</td></tr>`,
+        )
+        .join('');
+
+      const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>OTP Dev</title>
 <style>body{font-family:system-ui;max-width:600px;margin:2rem auto;padding:1rem}table{width:100%;border-collapse:collapse}th,td{padding:0.5rem;text-align:left;border-bottom:1px solid #ddd}th{background:#333;color:#fff}</style>
@@ -48,7 +56,13 @@ export class OtpController {
 </table>
 </body>
 </html>`;
-    res.type('text/html').send(html);
+
+      res.type('text/html').send(html);
+    }).catch(() => {
+      res.type('text/html').send(
+        `<!DOCTYPE html><html><body><h1>OTP Dev Logs</h1><p>Error fetching OTP logs.</p></body></html>`,
+      );
+    });
   }
 
   private escapeHtml(text: string): string {
