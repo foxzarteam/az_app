@@ -1,33 +1,30 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../l10n/app_locale.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/message_banner.dart';
-import '../widgets/digit_code_input_field.dart';
-import 'mpin_set_screen.dart';
 import 'mpin_login_screen.dart';
+import 'mpin_set_screen.dart';
 
-class _OtpBackspaceIntent extends Intent {
-  const _OtpBackspaceIntent();
-}
+enum OtpVerifyMode { firebasePhone, backendDb }
 
 class OTPVerificationScreen extends StatefulWidget {
   final String mobileNumber;
-  final String userName;
-  final String? email;
-  final bool isExistingUser;
+  final OtpVerifyMode mode;
+  final String? verificationId; // required for firebasePhone mode
   final bool isResetMPIN;
 
   const OTPVerificationScreen({
     super.key,
     required this.mobileNumber,
-    required this.userName,
-    this.email,
-    this.isExistingUser = false,
+    required this.mode,
+    this.verificationId,
     this.isResetMPIN = false,
   });
 
@@ -36,216 +33,220 @@ class OTPVerificationScreen extends StatefulWidget {
 }
 
 class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(AppConstants.otpLength, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(AppConstants.otpLength, (_) => FocusNode());
+  final _otpController = TextEditingController();
+  final _otpFocusNode = FocusNode();
   final _api = ApiService.instance;
+  final _auth = FirebaseAuth.instance;
 
   bool _isLoading = false;
-  bool _isVerifying = false;
   bool _isResending = false;
   String? _errorMessage;
-  String? _successMessage;
   int _resendCooldown = 0;
+
+  bool get _isFirebaseMode => widget.mode == OtpVerifyMode.firebasePhone;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[0].requestFocus();
-      _sendOTP();
+      _otpFocusNode.requestFocus();
+      if (!_isFirebaseMode) {
+        _startResendCooldown();
+      }
     });
-    _startResendCooldown();
-  }
-
-  Future<void> _sendOTP() async {
-    setState(() => _isLoading = true);
-    final response = await _api.sendOTP(widget.mobileNumber);
-    if (mounted) setState(() => _isLoading = false);
-    if (!response.success && mounted) {
-      setState(() => _errorMessage = response.message);
-    }
   }
 
   @override
   void dispose() {
-    for (var controller in _otpControllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _otpController.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
   void _startResendCooldown() {
     _resendCooldown = AppConstants.otpResendCooldownSeconds;
     setState(() {});
-    
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        setState(() {
-          _resendCooldown--;
-        });
-      }
-      return _resendCooldown > 0 && mounted;
+      if (!mounted) return false;
+      setState(() => _resendCooldown--);
+      return _resendCooldown > 0;
     });
   }
 
-  void _onOtpChanged(int index, String value) {
-    setState(() {
-      _errorMessage = null;
-      _successMessage = null;
-    });
-
-    if (value.isNotEmpty) {
-      if (index < AppConstants.otpLength - 1) {
-        _focusNodes[index + 1].requestFocus();
-      } else {
-        _focusNodes[index].unfocus();
-        final otp = _otpControllers.map((c) => c.text).join();
-        if (otp.length == AppConstants.otpLength) {
-          _verifyOTP(otp);
-        }
-      }
-    } else {
-      if (index > 0) {
-        _focusNodes[index - 1].requestFocus();
-      }
-    }
-  }
-
-  Future<void> _verifyOTP(String otp) async {
-    setState(() {
-      _isVerifying = true;
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    final response = await _api.verifyOTP(widget.mobileNumber, otp);
-
-    setState(() {
-      _isVerifying = false;
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      if (response.success) {
-        setState(() {
-          _successMessage = response.message;
-        });
-
-        final prefs = await SharedPreferences.getInstance();
-        final existingMPin = prefs.getString(AppConstants.keyMPin);
-        final hasMPin = existingMPin != null && existingMPin.isNotEmpty;
-
-        if (!widget.isExistingUser) {
-          await _saveUserData();
-        } else {
-          await prefs.setBool(AppConstants.keyIsLoggedIn, true);
-        }
-
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        if (mounted) {
-          if (widget.isResetMPIN) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => MPinSetScreen(
-                  userName: widget.userName,
-                  mobileNumber: widget.mobileNumber,
-                  isResetMPIN: true,
-                ),
-              ),
-            );
-            return;
-          }
-          
-          if (widget.isExistingUser && hasMPin) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => const MPinLoginScreen(),
-              ),
-            );
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => MPinSetScreen(
-                  userName: widget.userName,
-                  mobileNumber: widget.mobileNumber,
-                ),
-              ),
-            );
-          }
-        }
-      } else {
-        setState(() {
-          _errorMessage =
-              response.message ?? 'msgInvalidOtp';
-        });
-        _clearOtpFields();
-      }
-    }
-  }
-
-  void _clearOtpFields() {
-    for (var controller in _otpControllers) {
-      controller.clear();
-    }
-    _focusNodes[0].requestFocus();
-  }
-
-  Future<void> _saveUserData() async {
+  Future<void> _saveAndRoute({required bool hasMPin, required String userName}) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(AppConstants.keyUserName, widget.userName);
     await prefs.setString(AppConstants.keyMobileNumber, widget.mobileNumber);
-    if (widget.email != null && widget.email!.isNotEmpty) {
-      await prefs.setString(AppConstants.keyEmail, widget.email!);
+    await prefs.setString(AppConstants.keyUserName, userName);
+    await prefs.setBool(AppConstants.keyIsLoggedIn, true);
+
+    await _api.updateUserLoginStatus(widget.mobileNumber, true);
+
+    if (!mounted) return;
+
+    if (widget.isResetMPIN) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => MPinSetScreen(
+            userName: userName,
+            mobileNumber: widget.mobileNumber,
+            isResetMPIN: true,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (hasMPin) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MPinLoginScreen()),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => MPinSetScreen(
+            userName: userName,
+            mobileNumber: widget.mobileNumber,
+          ),
+        ),
+      );
     }
   }
 
-  Future<void> _resendOTP() async {
+  Future<void> _continueAfterSuccess() async {
+    final refreshedUser = await _api.getUserByMobile(widget.mobileNumber);
+
+    final userName = refreshedUser?['user_name']?.toString() ??
+        AppConstants.defaultUserName;
+    final savedMPin =
+        refreshedUser?['mpin']?.toString().trim() ?? '';
+    final hasMPin = savedMPin.isNotEmpty;
+
+    await _saveAndRoute(hasMPin: hasMPin, userName: userName);
+  }
+
+  Future<void> _verifyViaFirebase(String otp) async {
+    final verificationId = widget.verificationId;
+    if (verificationId == null) {
+      setState(() => _errorMessage = 'msgErrorTryAgain');
+      return;
+    }
+
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: otp,
+    );
+
+    await _auth.signInWithCredential(credential);
+
+    final dbUser = await _api.getUserByMobile(widget.mobileNumber);
+    if (dbUser == null && !widget.isResetMPIN) {
+      final ok = await _api.upsertUser(
+        mobileNumber: widget.mobileNumber,
+        userName: AppConstants.defaultUserName,
+        isLoggedIn: true,
+      );
+      if (!ok) {
+        setState(() => _errorMessage = 'msgFailedCreateAccount');
+        return;
+      }
+    }
+
+    await _continueAfterSuccess();
+  }
+
+  Future<void> _verifyViaBackend(String otp) async {
+    final response = await _api.verifyOTP(widget.mobileNumber, otp);
+    if (!response.success) {
+      setState(() {
+        _errorMessage = response.message ?? 'msgInvalidOtp';
+      });
+      _otpController.clear();
+      _otpFocusNode.requestFocus();
+      return;
+    }
+
+    final dbUser = await _api.getUserByMobile(widget.mobileNumber);
+    if (dbUser == null) {
+      if (widget.isResetMPIN) {
+        setState(() => _errorMessage = 'msgNumberNotRegistered');
+        return;
+      }
+
+      final ok = await _api.upsertUser(
+        mobileNumber: widget.mobileNumber,
+        userName: AppConstants.defaultUserName,
+        isLoggedIn: true,
+      );
+      if (!ok) {
+        setState(() => _errorMessage = 'msgFailedCreateAccount');
+        return;
+      }
+    }
+
+    await _continueAfterSuccess();
+  }
+
+  Future<void> _onOtpChanged(String value) async {
+    setState(() {
+      _errorMessage = null;
+    });
+
+    if (value.length != AppConstants.otpLength) return;
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (_isFirebaseMode) {
+        await _verifyViaFirebase(value.trim());
+      } else {
+        await _verifyViaBackend(value.trim());
+      }
+    } catch (_) {
+      setState(() => _errorMessage = 'msgErrorTryAgain');
+      _otpController.clear();
+      _otpFocusNode.requestFocus();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _resendOtp() async {
+    if (_isFirebaseMode) return; // firebase mode resend handled by firebase flow
     if (_resendCooldown > 0 || _isResending) return;
+
     setState(() {
       _isResending = true;
       _errorMessage = null;
     });
-    final response = await _api.sendOTP(widget.mobileNumber);
+
+    final res = await _api.sendOTP(widget.mobileNumber);
+
     if (!mounted) return;
+
     setState(() => _isResending = false);
 
-    if (mounted) {
-      if (response.success) {
-        setState(() {
-          _successMessage = 'OTP resent successfully!';
-        });
-
-        for (var controller in _otpControllers) {
-          controller.clear();
-        }
-        _focusNodes[0].requestFocus();
-
-        _startResendCooldown();
-      } else {
-        setState(() {
-          _errorMessage = response.message ?? 'Failed to resend OTP';
-        });
-      }
+    if (!res.success) {
+      setState(() => _errorMessage = res.message ?? 'msgErrorTryAgain');
+      return;
     }
+
+    _otpController.clear();
+    _otpFocusNode.requestFocus();
+    _startResendCooldown();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    const primaryBlue = AppTheme.primaryBlue;
-    const primaryBlueDark = AppTheme.primaryBlueDark;
+    final keyboardBottom = MediaQuery.of(context).viewInsets.bottom;
+
     const accentOrange = AppTheme.accentOrange;
-    const yellow = AppTheme.yellow;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Container(
@@ -253,228 +254,141 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [primaryBlueDark, primaryBlue],
-              ),
-            ),
-          ),
-
-          Positioned(
-            top: size.height * 0.08,
-            left: -30,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: accentOrange.withOpacity(0.15),
-              ),
-            ),
-          ),
-          Positioned(
-            top: size.height * 0.25,
-            right: -40,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: yellow.withOpacity(0.12),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: size.height * 0.15,
-            left: size.width * 0.2,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: accentOrange.withOpacity(0.1),
+                colors: [
+                  AppTheme.primaryBlueDark,
+                  AppTheme.primaryBlue,
+                ],
               ),
             ),
           ),
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-                final isKeyboardVisible = keyboardHeight > 0;
-                
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        children: [
-                          if (!isKeyboardVisible)
-                            Expanded(
-                              flex: 2,
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 110,
-                                      height: 110,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppTheme.accentOrange.withOpacity(0.3),
-                                            blurRadius: 20,
-                                            offset: const Offset(0, 8),
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.verified_user_rounded,
-                                        color: AppTheme.primaryBlue,
-                                        size: 56,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    Text(
-                                      context.t('msgVerifyOtp'),
-                                      style: GoogleFonts.inter(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          else
-                            const SizedBox(height: 40),
-                          Expanded(
-                            flex: isKeyboardVisible ? 1 : 3,
-                            child: Container(
-                              width: double.infinity,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(40),
-                                  topRight: Radius.circular(40),
-                                ),
-                              ),
-                              child: SingleChildScrollView(
-                                padding: EdgeInsets.only(
-                                  left: 24,
-                                  right: 24,
-                                  top: 32,
-                                  bottom: keyboardHeight + 32,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 24),
-                                    Shortcuts(
-                                      shortcuts: const {
-                                        SingleActivator(LogicalKeyboardKey.backspace): _OtpBackspaceIntent(),
-                                      },
-                                      child: Actions(
-                                        actions: {
-                                          _OtpBackspaceIntent: CallbackAction<_OtpBackspaceIntent>(
-                                            onInvoke: (_) {
-                                              for (var i = 0; i < AppConstants.otpLength; i++) {
-                                                if (_focusNodes[i].hasFocus &&
-                                                    _otpControllers[i].text.isEmpty &&
-                                                    i > 0) {
-                                                  _otpControllers[i - 1].clear();
-                                                  _focusNodes[i - 1].requestFocus();
-                                                  return null;
-                                                }
-                                              }
-                                              return null;
-                                            },
-                                          ),
-                                        },
-                                        child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: List.generate(AppConstants.otpLength, (index) {
-                                        return DigitCodeInputField(
-                                          controller: _otpControllers[index],
-                                          focusNode: _focusNodes[index],
-                                          onChanged: (value) =>
-                                              _onOtpChanged(index, value),
-                                          enabled: !_isLoading,
-                                          hasError: _errorMessage != null,
-                                          width: 52,
-                                          height: 52,
-                                          fontSize: 22,
-                                          letterSpacing: 1.5,
-                                        );
-                                      }),
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 32),
-
-                                    if (_isVerifying)
-                                      const CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          AppTheme.accentOrange,
-                                        ),
-                                      )
-                                    else if (_errorMessage != null)
-                                      MessageBanner(
-                                        message: context.tOrRaw(_errorMessage!),
-                                        type: MessageBannerType.error,
-                                      )
-                                    else if (_successMessage != null)
-                                      MessageBanner(
-                                        message: _successMessage!,
-                                        type: MessageBannerType.success,
-                                      ),
-                                    const SizedBox(height: 24),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          context.t('msgDidntReceiveOtp'),
-                                          style: GoogleFonts.inter(
-                                            fontSize: 14,
-                                            color: AppTheme.secondaryText,
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: _resendCooldown > 0 ? null : _resendOTP,
-                                          child: Text(
-                                            _resendCooldown > 0
-                                                ? '${context.t('msgResendOtp')} (${_resendCooldown}s)'
-                                                : context.t('msgResendOtp'),
-                                            style: GoogleFonts.inter(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: _resendCooldown > 0
-                                                  ? AppTheme.lightText
-                                                  : accentOrange,
-                                              decoration: _resendCooldown > 0
-                                                  ? TextDecoration.none
-                                                  : TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: keyboardHeight > 0 ? 20 : 0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: keyboardBottom),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const Spacer(flex: 2),
+                      const Icon(
+                        Icons.verified_user_rounded,
+                        color: Colors.white,
+                        size: 64,
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      Text(
+                        context.t('msgVerifyOtp'),
+                        style: GoogleFonts.inter(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      AnimatedPadding(
+                        duration: const Duration(milliseconds: 150),
+                        curve: Curves.easeOut,
+                        padding: EdgeInsets.only(bottom: keyboardBottom),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.95),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: _otpController,
+                                focusNode: _otpFocusNode,
+                                keyboardType: TextInputType.number,
+                                maxLength: AppConstants.otpLength,
+                                enabled: !_isLoading && !_isResending,
+                                textAlign: TextAlign.center,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(
+                                    AppConstants.otpLength,
+                                  ),
+                                ],
+                                style: GoogleFonts.inter(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w600,
+                                  color: accentOrange,
+                                  letterSpacing: 1.5,
+                                ),
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  hintText: 'Enter 6 digit OTP here',
+                                  hintStyle: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.lightText,
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: accentOrange.withOpacity(0.35),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _errorMessage != null
+                                          ? AppTheme.error
+                                          : accentOrange,
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: _onOtpChanged,
+                              ),
+                              const SizedBox(height: 12),
+                              if (_errorMessage != null)
+                                MessageBanner(
+                                  message: context.tOrRaw(_errorMessage!),
+                                  type: MessageBannerType.error,
+                                ),
+                              if (_isResending || _isLoading)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              if (!_isFirebaseMode) ...[
+                                const SizedBox(height: 8),
+                                TextButton(
+                                  onPressed: (_resendCooldown > 0 ||
+                                          _isLoading ||
+                                          _isResending)
+                                      ? null
+                                      : _resendOtp,
+                                  child: Text(
+                                    _resendCooldown > 0
+                                        ? 'Resend in $_resendCooldown s'
+                                        : 'Resend OTP',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: accentOrange,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Spacer(flex: 3),
+                    ],
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
         ],
@@ -482,3 +396,4 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     );
   }
 }
+

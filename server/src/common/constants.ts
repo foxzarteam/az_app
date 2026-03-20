@@ -9,9 +9,6 @@ export const OTP_LENGTH = 6;
 export const OTP_EXPIRY_MINUTES = 5;
 export const OTP_MAX_ATTEMPTS = 3;
 
-export const FAST2SMS_DEFAULT_BASE_URL = 'https://www.fast2sms.com/dev/bulkV2';
-export const FAST2SMS_ROUTE_OTP = 'otp';
-
 export const MSG_OTP_SESSION_FAILED = 'Failed to create OTP session.';
 export const MSG_OTP_SEND_FAILED = 'Failed to send OTP.';
 export const MSG_OTP_SENT = 'OTP sent successfully.';

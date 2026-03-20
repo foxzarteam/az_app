@@ -8,10 +8,6 @@ import '../services/api_service.dart';
 import 'main_shell_screen.dart';
 import 'signup_screen.dart';
 
-class _PinBackspaceIntent extends Intent {
-  const _PinBackspaceIntent();
-}
-
 class MPinSetScreen extends StatefulWidget {
   final String userName;
   final String mobileNumber;
@@ -29,10 +25,8 @@ class MPinSetScreen extends StatefulWidget {
 }
 
 class _MPinSetScreenState extends State<MPinSetScreen> {
-  final List<TextEditingController> _pinControllers =
-      List.generate(AppConstants.mpinLength, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(AppConstants.mpinLength, (_) => FocusNode());
+  final TextEditingController _mpinController = TextEditingController();
+  final FocusNode _mpinFocusNode = FocusNode();
   String _pin = '';
 
   @override
@@ -40,7 +34,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
     super.initState();
     _checkExistingMPin();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[0].requestFocus();
+      _mpinFocusNode.requestFocus();
     });
   }
 
@@ -73,30 +67,15 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
 
   @override
   void dispose() {
-    for (var controller in _pinControllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _mpinController.dispose();
+    _mpinFocusNode.dispose();
     super.dispose();
   }
 
-  void _onPinChanged(int index, String value) {
-    if (value.isNotEmpty) {
-      setState(() => _pin = _pinControllers.map((c) => c.text).join());
-      if (index < AppConstants.mpinLength - 1) {
-        _focusNodes[index + 1].requestFocus();
-      } else {
-        _focusNodes[index].unfocus();
-        if (_pin.length == AppConstants.mpinLength) _saveMPin();
-      }
-    } else {
-      // Backspace: current box cleared, move focus to previous
-      if (index > 0) {
-        setState(() => _pin = _pinControllers.map((c) => c.text).join());
-        _focusNodes[index - 1].requestFocus();
-      }
+  void _onMpinChanged(String value) {
+    setState(() => _pin = value);
+    if (value.length == AppConstants.mpinLength) {
+      _saveMPin(value);
     }
   }
 
@@ -108,11 +87,11 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
     );
   }
 
-  Future<void> _saveMPin() async {
-    if (_pin.length != AppConstants.mpinLength) return;
+  Future<void> _saveMPin(String pin) async {
+    if (pin.length != AppConstants.mpinLength) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final trimmedPin = _pin.trim();
+    final trimmedPin = pin.trim();
 
     if (trimmedPin.length != AppConstants.mpinLength) {
       if (mounted) _showSnackBar(AppConstants.msgInvalidMpin, isError: true);
@@ -190,7 +169,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
         _goBack();
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
             Container(
@@ -264,7 +243,8 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                     child: LayoutBuilder(
                 builder: (context, constraints) {
                   final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-                  final isKeyboardVisible = keyboardHeight > 0;
+                  // Keep layout stable when keyboard opens.
+                  final isKeyboardVisible = false;
 
                   return SingleChildScrollView(
                     child: ConstrainedBox(
@@ -328,88 +308,69 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                   ),
                                 ),
                                 child: SingleChildScrollView(
-                                  padding: EdgeInsets.only(
+                                  padding: const EdgeInsets.only(
                                     left: 24,
                                     right: 24,
                                     top: 32,
-                                    bottom: keyboardHeight + 32,
+                                    bottom: 32,
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 24),
-                                      Shortcuts(
-                                        shortcuts: const {
-                                          SingleActivator(LogicalKeyboardKey.backspace): _PinBackspaceIntent(),
-                                        },
-                                        child: Actions(
-                                          actions: {
-                                            _PinBackspaceIntent: CallbackAction<_PinBackspaceIntent>(
-                                              onInvoke: (_) {
-                                                for (var i = 0; i < AppConstants.mpinLength; i++) {
-                                                  if (_focusNodes[i].hasFocus &&
-                                                      _pinControllers[i].text.isEmpty &&
-                                                      i > 0) {
-                                                    _pinControllers[i - 1].clear();
-                                                    setState(() => _pin = _pinControllers.map((c) => c.text).join());
-                                                    _focusNodes[i - 1].requestFocus();
-                                                    return null;
-                                                  }
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                          },
-                                          child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: List.generate(AppConstants.mpinLength, (index) {
-                                          return SizedBox(
-                                            width: 65,
-                                            height: 65,
-                                            child: TextField(
-                                              controller: _pinControllers[index],
-                                              focusNode: _focusNodes[index],
-                                                textAlign: TextAlign.center,
-                                                keyboardType: TextInputType.number,
-                                                maxLength: 1,
-                                                obscureText: true,
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 26,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: accentOrange,
-                                                  letterSpacing: 2,
-                                                ),
-                                                decoration: InputDecoration(
-                                                  counterText: '',
-                                                  filled: true,
-                                                  fillColor: AppTheme.mainBackground,
-                                                  border: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(18),
-                                                    borderSide: BorderSide(
-                                                      color: accentOrange.withOpacity(0.3),
-                                                      width: 2,
-                                                    ),
-                                                  ),
-                                                  enabledBorder: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(18),
-                                                    borderSide: BorderSide(
-                                                      color: accentOrange.withOpacity(0.3),
-                                                      width: 2,
-                                                    ),
-                                                  ),
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(18),
-                                                    borderSide: BorderSide(
-                                                      color: accentOrange,
-                                                      width: 3,
-                                                    ),
-                                                  ),
-                                                ),
-                                                onChanged: (value) => _onPinChanged(index, value),
-                                            ),
-                                          );
-                                        }),
+                                      AnimatedPadding(
+                                        duration:
+                                            const Duration(milliseconds: 150),
+                                        curve: Curves.easeOut,
+                                        padding: EdgeInsets.only(
+                                          bottom:
+                                              MediaQuery.of(context).viewInsets.bottom,
+                                        ),
+                                        child: TextField(
+                                          controller: _mpinController,
+                                          focusNode: _mpinFocusNode,
+                                          keyboardType: TextInputType.number,
+                                          maxLength: AppConstants.mpinLength,
+                                          obscureText: true,
+                                          enabled: true,
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w600,
+                                            color: accentOrange,
+                                            letterSpacing: 1.5,
                                           ),
+                                            inputFormatters: [
+                                            FilteringTextInputFormatter.digitsOnly,
+                                            LengthLimitingTextInputFormatter(
+                                              AppConstants.mpinLength,
+                                            ),
+                                          ],
+                                          decoration: InputDecoration(
+                                            counterText: '',
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 10),
+                                            border: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: accentOrange.withOpacity(0.35),
+                                                width: 2,
+                                              ),
+                                            ),
+                                            enabledBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: accentOrange.withOpacity(0.35),
+                                                width: 2,
+                                              ),
+                                            ),
+                                            focusedBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: accentOrange,
+                                                width: 3,
+                                              ),
+                                            ),
+                                          ),
+                                          onChanged: _onMpinChanged,
                                         ),
                                       ),
                                       const SizedBox(height: 32),
@@ -443,7 +404,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                           ],
                                         ),
                                       ),
-                                      SizedBox(height: keyboardHeight > 0 ? 20 : 0),
+                                      const SizedBox(height: 20),
                                     ],
                                   ),
                                 ),

@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_CLIENT } from '../config/supabase.config';
 import {
@@ -7,11 +6,8 @@ import {
   OTP_LENGTH,
   OTP_EXPIRY_MINUTES,
   OTP_MAX_ATTEMPTS,
-  FAST2SMS_DEFAULT_BASE_URL,
-  FAST2SMS_ROUTE_OTP,
   getCurrentIsoTime,
   MSG_OTP_SESSION_FAILED,
-  MSG_OTP_SEND_FAILED,
   MSG_OTP_SENT,
   MSG_OTP_VERIFY_FAILED,
   MSG_OTP_INVALID_EXPIRED,
@@ -23,20 +19,10 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 export type OtpResult = { success: boolean; message: string };
 
-interface DevOtpEntry {
-  mobile: string;
-  otp: string;
-  at: string;
-}
-
 @Injectable()
 export class OtpService {
-  private devOtps: DevOtpEntry[] = [];
-  private static readonly MAX_DEV_OTPS = 20;
-
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
-    private readonly config: ConfigService,
   ) {}
 
   private get otpSessions() {
@@ -79,49 +65,6 @@ export class OtpService {
     return null;
   }
 
-  private async sendSmsViaFast2Sms(
-    mobileNumber: string,
-    otp: string,
-  ): Promise<OtpResult | null> {
-    const apiKey = this.config.get<string>('FAST2SMS_API_KEY');
-    const baseUrl = this.config.get<string>(
-      'FAST2SMS_BASE_URL',
-      FAST2SMS_DEFAULT_BASE_URL,
-    );
-    if (!apiKey || !baseUrl) return null;
-
-    try {
-      const res = await fetch(baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization: apiKey,
-        },
-        body: JSON.stringify({
-          route: FAST2SMS_ROUTE_OTP,
-          variables_values: otp,
-          numbers: mobileNumber,
-        }),
-      });
-      const json = (await res.json()) as { return?: boolean; message?: string };
-      if (!json.return) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn('Fast2SMS send failed:', json.message);
-        }
-        return {
-          success: false,
-          message: json.message ?? MSG_OTP_SEND_FAILED,
-        };
-      }
-      return null;
-    } catch (e) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Fast2SMS request error:', e);
-      }
-      return { success: false, message: MSG_OTP_SEND_FAILED };
-    }
-  }
-
   async send(dto: SendOtpDto): Promise<OtpResult> {
     const otp = this.generateOtp();
     const expiresAt = this.getExpiryTime();
@@ -133,30 +76,9 @@ export class OtpService {
     );
     if (sessionError) return sessionError;
 
-    // For debugging/dev: store OTP in memory so `/api/otp/dev` can show it.
-    // In production, this is only allowed when ALLOW_OTP_DEV=true.
-    const allowOtpDev =
-      process.env.NODE_ENV !== 'production' ||
-      this.config.get<string>('ALLOW_OTP_DEV') === 'true';
-    if (allowOtpDev) {
-      this.devOtps.unshift({
-        mobile: dto.mobileNumber,
-        otp,
-        at: new Date().toISOString(),
-      });
-      if (this.devOtps.length > OtpService.MAX_DEV_OTPS) {
-        this.devOtps.pop();
-      }
-    }
-
-    const smsError = await this.sendSmsViaFast2Sms(dto.mobileNumber, otp);
-    if (smsError) return smsError;
-
+    // Firebase Phone Auth flow is handled on the client.
+    // For LIVE=false flows (dev), we only create the OTP session in DB.
     return { success: true, message: MSG_OTP_SENT };
-  }
-
-  getDevOtps(): DevOtpEntry[] {
-    return [...this.devOtps];
   }
 
   // Dev endpoint helper: query latest OTP sessions from DB (works in serverless).

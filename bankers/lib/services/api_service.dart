@@ -165,6 +165,16 @@ class ApiService {
     );
   }
 
+  Future<bool> getLiveFlag() async {
+    final json = await _get('/otp/live');
+    final value = json?['live'];
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true';
+    // If the flag can't be read (network/server issue), default to the safer path:
+    // use Firebase phone auth.
+    return true;
+  }
+
   Future<OTPVerificationResponse> verifyOTP(
     String mobileNumber,
     String otp,

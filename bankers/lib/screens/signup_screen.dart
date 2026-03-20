@@ -8,8 +8,10 @@ import '../utils/constants.dart';
 import '../utils/validators.dart';
 import '../models/country_model.dart';
 import '../widgets/animated_error_banner.dart';
-import '../services/auth_flow_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import 'mpin_login_screen.dart';
+import 'mpin_set_screen.dart';
 import 'otp_verification_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -48,57 +50,190 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await AuthFlowService.instance.clearStaleSessionIfMobileChanged(
-        prefs,
-        mobileNumber,
-      );
 
-      final userName = await AuthFlowService.instance.ensureUserAndGetUserName(
-        mobileNumber,
-        prefs,
-      );
-      if (userName == null) {
+      // Clear stale MPIN if user changes mobile.
+      final storedMobile = prefs.getString(AppConstants.keyMobileNumber);
+      if (storedMobile != null && storedMobile != mobileNumber) {
+        await prefs.remove(AppConstants.keyMPin);
+        await prefs.setBool(AppConstants.keyIsLoggedIn, false);
+      }
+      await prefs.setString(AppConstants.keyMobileNumber, mobileNumber);
+
+      final dbUser = await ApiService.instance.getUserByMobile(mobileNumber);
+      final accountExists = dbUser != null;
+      final savedMPin =
+          dbUser?['mpin']?.toString().trim() ?? '';
+      final hasMPin = savedMPin.isNotEmpty;
+
+      // Forgot MPIN: only allow if number is already registered.
+      if (widget.isForgotMPIN && !accountExists) {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _errorMessage = 'msgFailedCreateAccount';
+            _errorMessage = 'msgNumberNotRegistered';
           });
         }
         return;
       }
 
-      final result = await AuthFlowService.instance.runSignUpFlow(
-        mobileNumber: mobileNumber,
-        userName: userName,
-        isForgotMPIN: widget.isForgotMPIN,
-        prefs: prefs,
-      );
-
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      if (result.route == SignUpNextRoute.stayWithError) {
-        setState(() => _errorMessage = result.errorMessage);
-        return;
-      }
-
-      if (result.route == SignUpNextRoute.mpinLogin) {
+      // Normal flow: if MPIN already exists, go to MPIN login directly.
+      if (!widget.isForgotMPIN && accountExists && hasMPin) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          await prefs.setString(
+            AppConstants.keyUserName,
+            dbUser!['user_name']?.toString() ??
+                AppConstants.defaultUserName,
+          );
+        }
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const MPinLoginScreen()),
         );
         return;
       }
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => OTPVerificationScreen(
-            mobileNumber: result.mobileNumber,
-            userName: result.userName,
-            isExistingUser: result.isExistingUser,
-            isResetMPIN: result.isResetMPIN,
+      final live = await ApiService.instance.getLiveFlag();
+
+      if (live) {
+        // LIVE=true: Firebase Phone Auth sends OTP to the phone.
+        bool didNavigate = false;
+        await FirebaseAuth.instance.verifyPhoneNumber(
+          phoneNumber: '+91$mobileNumber',
+          timeout: const Duration(seconds: 60),
+          verificationCompleted: (PhoneAuthCredential credential) async {
+            if (didNavigate || !mounted) return;
+            try {
+              setState(() => _isLoading = true);
+              await FirebaseAuth.instance.signInWithCredential(credential);
+
+              final dbUser =
+                  await ApiService.instance.getUserByMobile(mobileNumber);
+
+              if (dbUser == null) {
+                if (widget.isForgotMPIN) {
+                  setState(() {
+                    _isLoading = false;
+                    _errorMessage = 'msgNumberNotRegistered';
+                  });
+                  return;
+                }
+
+                final ok = await ApiService.instance.upsertUser(
+                  mobileNumber: mobileNumber,
+                  userName: AppConstants.defaultUserName,
+                  isLoggedIn: true,
+                );
+                if (!ok) {
+                  setState(() {
+                    _isLoading = false;
+                    _errorMessage = 'msgFailedCreateAccount';
+                  });
+                  return;
+                }
+              }
+
+              final refreshedUser =
+                  await ApiService.instance.getUserByMobile(mobileNumber);
+
+              final userName = refreshedUser?['user_name']?.toString() ??
+                  AppConstants.defaultUserName;
+              final savedMPin =
+                  refreshedUser?['mpin']?.toString().trim() ?? '';
+              final hasMPin = savedMPin.isNotEmpty;
+
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString(
+                AppConstants.keyMobileNumber,
+                mobileNumber,
+              );
+              await prefs.setString(
+                AppConstants.keyUserName,
+                userName,
+              );
+              await prefs.setBool(AppConstants.keyIsLoggedIn, true);
+              await ApiService.instance.updateUserLoginStatus(
+                mobileNumber,
+                true,
+              );
+
+              if (!mounted) return;
+
+              didNavigate = true;
+              if (widget.isForgotMPIN) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => MPinSetScreen(
+                      userName: userName,
+                      mobileNumber: mobileNumber,
+                      isResetMPIN: true,
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => hasMPin
+                      ? const MPinLoginScreen()
+                      : MPinSetScreen(
+                          userName: userName,
+                          mobileNumber: mobileNumber,
+                        ),
+                ),
+              );
+            } catch (_) {
+              if (!mounted || didNavigate) return;
+              setState(() {
+                _isLoading = false;
+                _errorMessage = 'msgErrorTryAgain';
+              });
+            }
+          },
+          verificationFailed: (FirebaseAuthException e) {
+            if (didNavigate || !mounted) return;
+            setState(() {
+              _isLoading = false;
+              _errorMessage = 'msgErrorTryAgain';
+            });
+          },
+          codeSent: (verificationId, _) {
+            if (didNavigate || !mounted) return;
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => OTPVerificationScreen(
+                  mobileNumber: mobileNumber,
+                  mode: OtpVerifyMode.firebasePhone,
+                  verificationId: verificationId,
+                  isResetMPIN: widget.isForgotMPIN,
+                ),
+              ),
+            );
+          },
+          codeAutoRetrievalTimeout: (_) {},
+        );
+      } else {
+        // LIVE=false: create OTP session in DB, user can see OTP at /api/otp/dev.
+        final otpRes = await ApiService.instance.sendOTP(mobileNumber);
+        if (!otpRes.success) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = otpRes.message ?? 'msgErrorTryAgain';
+          });
+          return;
+        }
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => OTPVerificationScreen(
+              mobileNumber: mobileNumber,
+              mode: OtpVerifyMode.backendDb,
+              isResetMPIN: widget.isForgotMPIN,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (_) {
       if (mounted) {
         setState(() {

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "33994590102",
+    "project_id": "azapp-77130",
+    "storage_bucket": "azapp-77130.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33994590102:android:3a4273fd99a197a299bfb7",
+        "android_client_info": {
+          "package_name": "com.example.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmtpVbQBuNyHvky2SGffS44QdsvEThSLQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

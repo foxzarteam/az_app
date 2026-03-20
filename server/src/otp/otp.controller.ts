@@ -24,24 +24,33 @@ export class OtpController {
     return this.otpService.verify(dto);
   }
 
+  @Get('live')
+  live() {
+    const live = this.config.get<string>('LIVE') === 'true';
+    return { live };
+  }
+
   @Get('dev')
   dev(@Res() res: Response) {
     const isProduction = this.config.get<string>('NODE_ENV') === 'production';
     const allowOtpDev = this.config.get<string>('ALLOW_OTP_DEV') === 'true';
+    const live = this.config.get<string>('LIVE') === 'true';
     if (isProduction && !allowOtpDev) {
       return res.status(404).json({ error: 'Not found' });
     }
 
     // Serverless-safe: read from DB instead of relying on in-memory devOtps.
     this.otpService.getLatestOtpSessions(10).then((entries) => {
-      const rows = entries
-        .map(
-          (e) =>
-            `<tr><td>${this.escapeHtml(e.mobile_number)}</td><td><strong>${e.otp_code}</strong></td><td>${this.escapeHtml(
-              e.created_at,
-            )}</td></tr>`,
-        )
-        .join('');
+      const rows = live
+        ? ''
+        : entries
+            .map(
+              (e) =>
+                `<tr><td>${this.escapeHtml(e.mobile_number)}</td><td><strong>${e.otp_code}</strong></td><td>${this.escapeHtml(
+                  e.created_at,
+                )}</td></tr>`,
+            )
+            .join('');
 
       const html = `<!DOCTYPE html>
 <html>
@@ -50,9 +59,15 @@ export class OtpController {
 </head>
 <body>
 <h1>OTP Dev Logs</h1>
+<p><strong>LIVE:</strong> ${live ? 'true' : 'false'}</p>
 <table>
 <thead><tr><th>Mobile</th><th>OTP</th><th>Time</th></tr></thead>
-<tbody>${rows || '<tr><td colspan="3">No OTPs yet. Send one via POST /api/otp/send</td></tr>'}</tbody>
+<tbody>${
+        rows ||
+        (live
+          ? '<tr><td colspan="3">LIVE=true. Firebase Phone Auth is active, so /api/otp/send is not used.</td></tr>'
+          : '<tr><td colspan="3">No OTPs yet. Send one via POST /api/otp/send</td></tr>')
+      }</tbody>
 </table>
 </body>
 </html>`;

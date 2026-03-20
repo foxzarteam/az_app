@@ -7,14 +7,9 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/bubble_background.dart';
 import '../widgets/auth_header.dart';
-import '../widgets/pin_input_field.dart';
 import '../widgets/message_banner.dart';
 import 'main_shell_screen.dart';
 import 'signup_screen.dart';
-
-class _BackspaceIntent extends Intent {
-  const _BackspaceIntent();
-}
 
 class MPinLoginScreen extends StatefulWidget {
   const MPinLoginScreen({super.key});
@@ -24,11 +19,8 @@ class MPinLoginScreen extends StatefulWidget {
 }
 
 class _MPinLoginScreenState extends State<MPinLoginScreen> {
-  final List<TextEditingController> _pinControllers =
-      List.generate(AppConstants.mpinLength, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(AppConstants.mpinLength, (_) => FocusNode());
-  String _pin = '';
+  final TextEditingController _mpinController = TextEditingController();
+  final FocusNode _mpinFocusNode = FocusNode();
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -36,40 +28,26 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[0].requestFocus();
+      _mpinFocusNode.requestFocus();
     });
   }
 
   @override
   void dispose() {
-    for (var controller in _pinControllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _mpinController.dispose();
+    _mpinFocusNode.dispose();
     super.dispose();
   }
 
-  void _onPinChanged(int index, String value) {
+  void _onMpinChanged(String value) {
     setState(() => _errorMessage = null);
-
-    if (value.isNotEmpty) {
-      setState(() => _pin = _pinControllers.map((c) => c.text).join());
-
-      if (index < AppConstants.mpinLength - 1) {
-        _focusNodes[index + 1].requestFocus();
-      } else {
-        _focusNodes[index].unfocus();
-        if (_pin.length == AppConstants.mpinLength) _verifyMPin();
-      }
-    } else if (index > 0) {
-      _focusNodes[index - 1].requestFocus();
-    }
+    if (value.length == AppConstants.mpinLength) {
+      _verifyMPin(value.trim());
+     }
   }
 
-  Future<void> _verifyMPin() async {
-    if (_pin.length != AppConstants.mpinLength) return;
+  Future<void> _verifyMPin(String enteredMPin) async {
+    if (enteredMPin.length != AppConstants.mpinLength) return;
 
     setState(() {
       _isLoading = true;
@@ -100,7 +78,6 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
     }
 
     final savedMPin = dbUser['mpin']?.toString().trim() ?? '';
-    final enteredMPin = _pin.trim();
     final userName = dbUser['user_name']?.toString() ??
         prefs.getString(AppConstants.keyUserName) ??
         AppConstants.defaultUserName;
@@ -113,7 +90,7 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
     }
 
     if (savedMPin == enteredMPin) {
-      await prefs.setString(AppConstants.keyMPin, _pin);
+      await prefs.setString(AppConstants.keyMPin, enteredMPin);
       await prefs.setString(AppConstants.keyUserName, userName);
       await prefs.setBool(AppConstants.keyIsLoggedIn, true);
       await ApiService.instance.updateUserLoginStatus(mobileNumber, true);
@@ -140,23 +117,18 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
       _isLoading = false;
       _errorMessage = message;
     });
-    for (var c in _pinControllers) {
-      c.clear();
-    }
-    _pin = '';
-    _focusNodes[0].requestFocus();
+    _mpinController.clear();
+    _mpinFocusNode.requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: BubbleBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
+            padding: EdgeInsets.zero,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height -
@@ -192,40 +164,62 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                           const SizedBox(height: 24),
-                          Shortcuts(
-                            shortcuts: const {
-                              SingleActivator(LogicalKeyboardKey.backspace): _BackspaceIntent(),
-                            },
-                            child: Actions(
-                              actions: {
-                                _BackspaceIntent: CallbackAction<_BackspaceIntent>(
-                                  onInvoke: (_) {
-                                    for (var i = 0; i < AppConstants.mpinLength; i++) {
-                                      if (_focusNodes[i].hasFocus &&
-                                          _pinControllers[i].text.isEmpty &&
-                                          i > 0) {
-                                        _pinControllers[i - 1].clear();
-                                        setState(() => _pin = _pinControllers.map((c) => c.text).join());
-                                        _focusNodes[i - 1].requestFocus();
-                                        return null;
-                                      }
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: List.generate(AppConstants.mpinLength, (index) {
-                                  return PinInputField(
-                                    controller: _pinControllers[index],
-                                    focusNode: _focusNodes[index],
-                                    onChanged: (value) => _onPinChanged(index, value),
-                                    hasError: _errorMessage != null,
-                                    enabled: !_isLoading,
-                                  );
-                                }),
+                          AnimatedPadding(
+                            duration: const Duration(milliseconds: 150),
+                            curve: Curves.easeOut,
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                            ),
+                            child: TextField(
+                              controller: _mpinController,
+                              focusNode: _mpinFocusNode,
+                              keyboardType: TextInputType.number,
+                              maxLength: AppConstants.mpinLength,
+                              obscureText: true,
+                              enabled: !_isLoading,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.accentOrange,
+                                letterSpacing: 1.5,
                               ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(
+                                  AppConstants.mpinLength,
+                                ),
+                              ],
+                              decoration: InputDecoration(
+                                counterText: '',
+                                contentPadding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                border: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: _errorMessage != null
+                                        ? AppTheme.error
+                                        : AppTheme.accentOrange.withOpacity(0.35),
+                                    width: 2,
+                                  ),
+                                ),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: _errorMessage != null
+                                        ? AppTheme.error
+                                        : AppTheme.accentOrange.withOpacity(0.35),
+                                    width: 2,
+                                  ),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: _errorMessage != null
+                                        ? AppTheme.error
+                                        : AppTheme.accentOrange,
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              onChanged: _onMpinChanged,
                             ),
                           ),
                           const SizedBox(height: 32),
