@@ -30,9 +30,9 @@ class MPinSetScreen extends StatefulWidget {
 
 class _MPinSetScreenState extends State<MPinSetScreen> {
   final List<TextEditingController> _pinControllers =
-      List.generate(AppConstants.otpLength, (_) => TextEditingController());
+      List.generate(AppConstants.mpinLength, (_) => TextEditingController());
   final List<FocusNode> _focusNodes =
-      List.generate(AppConstants.otpLength, (_) => FocusNode());
+      List.generate(AppConstants.mpinLength, (_) => FocusNode());
   String _pin = '';
 
   @override
@@ -85,11 +85,11 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
   void _onPinChanged(int index, String value) {
     if (value.isNotEmpty) {
       setState(() => _pin = _pinControllers.map((c) => c.text).join());
-      if (index < AppConstants.otpLength - 1) {
+      if (index < AppConstants.mpinLength - 1) {
         _focusNodes[index + 1].requestFocus();
       } else {
         _focusNodes[index].unfocus();
-        if (_pin.length == AppConstants.otpLength) _saveMPin();
+        if (_pin.length == AppConstants.mpinLength) _saveMPin();
       }
     } else {
       // Backspace: current box cleared, move focus to previous
@@ -109,12 +109,12 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
   }
 
   Future<void> _saveMPin() async {
-    if (_pin.length != AppConstants.otpLength) return;
+    if (_pin.length != AppConstants.mpinLength) return;
 
     final prefs = await SharedPreferences.getInstance();
     final trimmedPin = _pin.trim();
 
-    if (trimmedPin.length != AppConstants.otpLength) {
+    if (trimmedPin.length != AppConstants.mpinLength) {
       if (mounted) _showSnackBar(AppConstants.msgInvalidMpin, isError: true);
       return;
     }
@@ -346,7 +346,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                           actions: {
                                             _PinBackspaceIntent: CallbackAction<_PinBackspaceIntent>(
                                               onInvoke: (_) {
-                                                for (var i = 0; i < 4; i++) {
+                                                for (var i = 0; i < AppConstants.mpinLength; i++) {
                                                   if (_focusNodes[i].hasFocus &&
                                                       _pinControllers[i].text.isEmpty &&
                                                       i > 0) {
@@ -362,7 +362,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                                           },
                                           child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: List.generate(4, (index) {
+                                        children: List.generate(AppConstants.mpinLength, (index) {
                                           return SizedBox(
                                             width: 65,
                                             height: 65,

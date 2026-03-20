@@ -25,9 +25,9 @@ class MPinLoginScreen extends StatefulWidget {
 
 class _MPinLoginScreenState extends State<MPinLoginScreen> {
   final List<TextEditingController> _pinControllers =
-      List.generate(AppConstants.otpLength, (_) => TextEditingController());
+      List.generate(AppConstants.mpinLength, (_) => TextEditingController());
   final List<FocusNode> _focusNodes =
-      List.generate(AppConstants.otpLength, (_) => FocusNode());
+      List.generate(AppConstants.mpinLength, (_) => FocusNode());
   String _pin = '';
   bool _isLoading = false;
   String? _errorMessage;
@@ -57,11 +57,11 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
     if (value.isNotEmpty) {
       setState(() => _pin = _pinControllers.map((c) => c.text).join());
 
-      if (index < 3) {
+      if (index < AppConstants.mpinLength - 1) {
         _focusNodes[index + 1].requestFocus();
       } else {
         _focusNodes[index].unfocus();
-        if (_pin.length == 4) _verifyMPin();
+        if (_pin.length == AppConstants.mpinLength) _verifyMPin();
       }
     } else if (index > 0) {
       _focusNodes[index - 1].requestFocus();
@@ -69,7 +69,7 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
   }
 
   Future<void> _verifyMPin() async {
-    if (_pin.length != AppConstants.otpLength) return;
+    if (_pin.length != AppConstants.mpinLength) return;
 
     setState(() {
       _isLoading = true;
@@ -200,7 +200,7 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
                               actions: {
                                 _BackspaceIntent: CallbackAction<_BackspaceIntent>(
                                   onInvoke: (_) {
-                                    for (var i = 0; i < 4; i++) {
+                                    for (var i = 0; i < AppConstants.mpinLength; i++) {
                                       if (_focusNodes[i].hasFocus &&
                                           _pinControllers[i].text.isEmpty &&
                                           i > 0) {
@@ -216,7 +216,7 @@ class _MPinLoginScreenState extends State<MPinLoginScreen> {
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: List.generate(4, (index) {
+                                children: List.generate(AppConstants.mpinLength, (index) {
                                   return PinInputField(
                                     controller: _pinControllers[index],
                                     focusNode: _focusNodes[index],

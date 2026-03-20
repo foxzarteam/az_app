@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/message_banner.dart';
+import '../widgets/digit_code_input_field.dart';
 import 'mpin_set_screen.dart';
 import 'mpin_login_screen.dart';
 
@@ -396,58 +397,17 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                                         child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: List.generate(AppConstants.otpLength, (index) {
-                                        return SizedBox(
-                                          width: 65,
-                                          height: 65,
-                                          child: TextField(
-                                            controller: _otpControllers[index],
-                                            focusNode: _focusNodes[index],
-                                              textAlign: TextAlign.center,
-                                              keyboardType: TextInputType.number,
-                                              maxLength: 1,
-                                              enabled: !_isLoading,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 26,
-                                                fontWeight: FontWeight.w500,
-                                                color: accentOrange,
-                                                letterSpacing: 2,
-                                              ),
-                                              decoration: InputDecoration(
-                                                counterText: '',
-                                                filled: true,
-                                                fillColor: _errorMessage != null
-                                                    ? AppTheme.error.withOpacity(0.05)
-                                                    : AppTheme.mainBackground,
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: _errorMessage != null
-                                                        ? AppTheme.error
-                                                        : accentOrange.withOpacity(0.3),
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: _errorMessage != null
-                                                        ? AppTheme.error
-                                                        : accentOrange.withOpacity(0.3),
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(18),
-                                                  borderSide: BorderSide(
-                                                    color: _errorMessage != null
-                                                        ? AppTheme.error
-                                                        : accentOrange,
-                                                    width: 3,
-                                                  ),
-                                                ),
-                                              ),
-                                            onChanged: (value) => _onOtpChanged(index, value),
-                                          ),
+                                        return DigitCodeInputField(
+                                          controller: _otpControllers[index],
+                                          focusNode: _focusNodes[index],
+                                          onChanged: (value) =>
+                                              _onOtpChanged(index, value),
+                                          enabled: !_isLoading,
+                                          hasError: _errorMessage != null,
+                                          width: 52,
+                                          height: 52,
+                                          fontSize: 22,
+                                          letterSpacing: 1.5,
                                         );
                                       }),
                                         ),

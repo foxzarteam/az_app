@@ -7,7 +7,7 @@ export class VerifyOtpDto {
   mobileNumber: string;
 
   @IsString()
-  @Length(4, 4, { message: 'otp must be 4 digits' })
-  @Matches(/^\d{4}$/, { message: 'otp must be 4 digits' })
+  @Length(6, 6, { message: 'otp must be 6 digits' })
+  @Matches(/^\d{6}$/, { message: 'otp must be 6 digits' })
   otp: string;
 }

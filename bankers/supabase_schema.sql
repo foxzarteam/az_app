@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE TABLE IF NOT EXISTS otp_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     mobile_number VARCHAR(10) NOT NULL,
-    otp_code VARCHAR(4) NOT NULL,
+    otp_code VARCHAR(6) NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     is_verified BOOLEAN DEFAULT false,
     verified_at TIMESTAMP WITH TIME ZONE,

@@ -1,9 +1,12 @@
 /// App constants: strings, keys, numbers only. All colors are in app_theme.dart.
 class AppConstants {
   // OTP UI configuration (actual sending is done by backend)
-  static const int otpLength = 4;
+  static const int otpLength = 6;
   static const int otpExpirationMinutes = 5;
   static const int otpResendCooldownSeconds = 60;
+
+  // MPIN is fixed-length (separate from OTP length).
+  static const int mpinLength = 4;
 
   static const String appName = 'Apni Zaroorat';
 
@@ -81,7 +84,7 @@ class AppConstants {
   static const String msgPleaseEnterMobile = 'Please enter mobile number';
   static const String msgValidTenDigit = 'Enter valid 10-digit number';
   static const String msgValidIndianNumber = 'Enter valid Indian number';
-  static const String msgOtpMustBeDigits = 'OTP must be 4 digits';
+  static const String msgOtpMustBeDigits = 'OTP must be 6 digits';
 
   // Payment (UPI / IFSC) validation
   static const String msgEnterUpiOrMobile = 'Enter UPI ID or 10-digit mobile number';

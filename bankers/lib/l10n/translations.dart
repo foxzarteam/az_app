@@ -94,7 +94,7 @@ Map<String, Map<String, String>> get appTranslations => {
   'msgPleaseEnterMobile': {'en': 'Please enter mobile number', 'hi': 'कृपया मोबाइल नंबर दर्ज करें'},
   'msgValidTenDigit': {'en': 'Enter valid 10-digit number', 'hi': 'वैध 10 अंकों का नंबर दर्ज करें'},
   'msgValidIndianNumber': {'en': 'Enter valid Indian number', 'hi': 'वैध भारतीय नंबर दर्ज करें'},
-  'msgOtpMustBeDigits': {'en': 'OTP must be 4 digits', 'hi': 'OTP 4 अंकों का होना चाहिए'},
+  'msgOtpMustBeDigits': {'en': 'OTP must be 6 digits', 'hi': 'OTP 6 अंकों का होना चाहिए'},
   'msgEnterUpiOrMobile': {'en': 'Enter UPI ID or 10-digit mobile number', 'hi': 'UPI ID या 10 अंकों का मोबाइल नंबर दर्ज करें'},
   'msgInvalidUpi': {'en': 'Enter valid UPI ID (e.g. name@upi) or 10-digit mobile', 'hi': 'वैध UPI ID (जैसे name@upi) या 10 अंकों का मोबाइल दर्ज करें'},
   'msgEnterIfsc': {'en': 'Enter IFSC code', 'hi': 'IFSC कोड दर्ज करें'},

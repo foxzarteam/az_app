@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active) WHERE is_acti
 CREATE TABLE IF NOT EXISTS otp_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     mobile_number VARCHAR(10) NOT NULL,
-    otp_code VARCHAR(4) NOT NULL,
+    otp_code VARCHAR(6) NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     is_verified BOOLEAN DEFAULT false,
     verified_at TIMESTAMP WITH TIME ZONE,
@@ -126,7 +126,7 @@ CREATE POLICY "Public can create OTP"
     ON otp_sessions FOR INSERT
     WITH CHECK (
         mobile_number ~ '^[0-9]{10}$' AND
-        otp_code ~ '^[0-9]{4}$' AND
+        otp_code ~ '^[0-9]{6}$' AND
         expires_at > NOW()
     );
 
@@ -238,7 +238,7 @@ DROP CONSTRAINT IF EXISTS check_otp_format;
 
 ALTER TABLE otp_sessions 
 ADD CONSTRAINT check_otp_format 
-CHECK (otp_code ~ '^[0-9]{4}$' AND LENGTH(otp_code) = 4);
+CHECK (otp_code ~ '^[0-9]{6}$' AND LENGTH(otp_code) = 6);
 
 -- ============================================
 -- 10. HELPER FUNCTIONS FOR APP USE
