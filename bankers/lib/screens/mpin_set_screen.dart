@@ -28,6 +28,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
   final TextEditingController _mpinController = TextEditingController();
   final FocusNode _mpinFocusNode = FocusNode();
   String _pin = '';
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -74,7 +75,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
 
   void _onMpinChanged(String value) {
     setState(() => _pin = value);
-    if (value.length == AppConstants.mpinLength) {
+    if (value.length == AppConstants.mpinLength && !_isSaving) {
       _saveMPin(value);
     }
   }
@@ -89,6 +90,8 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
 
   Future<void> _saveMPin(String pin) async {
     if (pin.length != AppConstants.mpinLength) return;
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
 
     final prefs = await SharedPreferences.getInstance();
     final trimmedPin = pin.trim();
@@ -106,6 +109,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
     );
 
     if (!success) {
+      if (mounted) setState(() => _isSaving = false);
       if (mounted) _showSnackBar(AppConstants.msgFailedSaveMpin, isError: true);
       return;
     }
@@ -114,6 +118,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
         await ApiService.instance.getUserByMobile(widget.mobileNumber);
     final savedMPin = verifyUser?['mpin']?.toString().trim() ?? '';
     if (savedMPin != trimmedPin) {
+      if (mounted) setState(() => _isSaving = false);
       if (mounted) _showSnackBar(AppConstants.msgMpinVerifyFailed, isError: true);
       return;
     }
@@ -124,6 +129,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
     await prefs.setBool(AppConstants.keyIsLoggedIn, true);
 
     if (mounted) {
+      setState(() => _isSaving = false);
       if (widget.isResetMPIN) {
         _showSnackBar(AppConstants.msgMpinResetSuccess, isError: false);
         await Future.delayed(const Duration(milliseconds: 500));
@@ -156,12 +162,6 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    const primaryBlue = AppTheme.primaryBlue;
-    const primaryBlueDark = AppTheme.primaryBlueDark;
-    const accentOrange = AppTheme.accentOrange;
-    const yellow = AppTheme.yellow;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -177,248 +177,165 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [primaryBlueDark, primaryBlue],
-                ),
-              ),
-            ),
-            Positioned(
-              top: size.height * 0.08,
-              left: -30,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accentOrange.withOpacity(0.15),
-                ),
-              ),
-            ),
-            Positioned(
-              top: size.height * 0.25,
-              right: -40,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: yellow.withOpacity(0.12),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: size.height * 0.15,
-              left: size.width * 0.2,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accentOrange.withOpacity(0.1),
+                  colors: [
+                    AppTheme.primaryBlueDark,
+                    AppTheme.primaryBlue,
+                  ],
                 ),
               ),
             ),
             SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: _goBack,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                          ),
-                        ),
-                      ],
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 55,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.lock_outline_rounded,
+                      color: Colors.white,
+                      size: 64,
                     ),
-                  ),
-                  Expanded(
-                    child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-                  // Keep layout stable when keyboard opens.
-                  final isKeyboardVisible = false;
-
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          children: [
-                            if (!isKeyboardVisible)
-                              Expanded(
-                                flex: 2,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 110,
-                                        height: 110,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: accentOrange.withOpacity(0.3),
-                                              blurRadius: 20,
-                                              offset: const Offset(0, 8),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.lock_outline_rounded,
-                                          color: AppTheme.accentOrange,
-                                          size: 56,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Text(
-                                        AppConstants.msgSetMpinTitle,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                    ],
-                                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      AppConstants.msgSetMpinTitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            controller: _mpinController,
+                            focusNode: _mpinFocusNode,
+                            keyboardType: TextInputType.number,
+                            maxLength: AppConstants.mpinLength,
+                            obscureText: true,
+                            enabled: true,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.accentOrange,
+                              letterSpacing: 1.5,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(
+                                AppConstants.mpinLength,
+                              ),
+                            ],
+                            decoration: InputDecoration(
+                              counterText: '',
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 10),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppTheme.accentOrange.withOpacity(0.35),
+                                  width: 2,
                                 ),
-                              )
-                            else
-                              const SizedBox(height: 40),
-                            Expanded(
-                              flex: isKeyboardVisible ? 1 : 3,
-                              child: Container(
-                                width: double.infinity,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(40),
-                                    topRight: Radius.circular(40),
-                                  ),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppTheme.accentOrange,
+                                  width: 3,
                                 ),
-                                child: SingleChildScrollView(
-                                  padding: const EdgeInsets.only(
-                                    left: 24,
-                                    right: 24,
-                                    top: 32,
-                                    bottom: 32,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 24),
-                                      AnimatedPadding(
-                                        duration:
-                                            const Duration(milliseconds: 150),
-                                        curve: Curves.easeOut,
-                                        padding: EdgeInsets.only(
-                                          bottom:
-                                              MediaQuery.of(context).viewInsets.bottom,
-                                        ),
-                                        child: TextField(
-                                          controller: _mpinController,
-                                          focusNode: _mpinFocusNode,
-                                          keyboardType: TextInputType.number,
-                                          maxLength: AppConstants.mpinLength,
-                                          obscureText: true,
-                                          enabled: true,
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w600,
-                                            color: accentOrange,
-                                            letterSpacing: 1.5,
-                                          ),
-                                            inputFormatters: [
-                                            FilteringTextInputFormatter.digitsOnly,
-                                            LengthLimitingTextInputFormatter(
-                                              AppConstants.mpinLength,
-                                            ),
-                                          ],
-                                          decoration: InputDecoration(
-                                            counterText: '',
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    vertical: 10),
-                                            border: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: accentOrange.withOpacity(0.35),
-                                                width: 2,
-                                              ),
-                                            ),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: accentOrange.withOpacity(0.35),
-                                                width: 2,
-                                              ),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: accentOrange,
-                                                width: 3,
-                                              ),
-                                            ),
-                                          ),
-                                          onChanged: _onMpinChanged,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 32),
-                                      Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          color: accentOrange.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: accentOrange.withOpacity(0.2),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.info_outline_rounded,
-                                              color: accentOrange,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                AppConstants.msgRememberPin,
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 13,
-                                                  color: accentOrange.withOpacity(0.9),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                    ],
+                              ),
+                              border: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppTheme.accentOrange.withOpacity(0.35),
+                                  width: 2,
+                                ),
+                              ),
+                              hintText: AppConstants.msgEnterMpin,
+                              hintStyle: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.lightText,
+                              ),
+                            ),
+                            onChanged: _onMpinChanged,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentOrange,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.accentOrange.withOpacity(0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(18),
+                            onTap: () {
+                              final v = _mpinController.text.trim();
+                              if (v.length != AppConstants.mpinLength) {
+                                _showSnackBar(AppConstants.msgInvalidMpin,
+                                    isError: true);
+                                return;
+                              }
+                              _saveMPin(v);
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text(
+                                  'Submit',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    letterSpacing: 1,
                                   ),
                                 ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-                ],
+                    const SizedBox(height: 14),
+                    // Small hint for reset flow.
+                    if (widget.isResetMPIN)
+                      Text(
+                        AppConstants.msgMpinResetSuccess,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.accentOrange.withOpacity(0.9),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],

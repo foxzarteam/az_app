@@ -241,8 +241,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardBottom = MediaQuery.of(context).viewInsets.bottom;
-
     const accentOrange = AppTheme.accentOrange;
 
     return Scaffold(
@@ -262,132 +260,119 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             ),
           ),
           SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: keyboardBottom),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      const Spacer(flex: 2),
-                      const Icon(
-                        Icons.verified_user_rounded,
-                        color: Colors.white,
-                        size: 64,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        context.t('msgVerifyOtp'),
-                        style: GoogleFonts.inter(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      AnimatedPadding(
-                        duration: const Duration(milliseconds: 150),
-                        curve: Curves.easeOut,
-                        padding: EdgeInsets.only(bottom: keyboardBottom),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 24),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                controller: _otpController,
-                                focusNode: _otpFocusNode,
-                                keyboardType: TextInputType.number,
-                                maxLength: AppConstants.otpLength,
-                                enabled: !_isLoading && !_isResending,
-                                textAlign: TextAlign.center,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(
-                                    AppConstants.otpLength,
-                                  ),
-                                ],
-                                style: GoogleFonts.inter(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                  color: accentOrange,
-                                  letterSpacing: 1.5,
-                                ),
-                                decoration: InputDecoration(
-                                  counterText: '',
-                                  hintText: 'Enter 6 digit OTP here',
-                                  hintStyle: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.lightText,
-                                  ),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: accentOrange.withOpacity(0.35),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: _errorMessage != null
-                                          ? AppTheme.error
-                                          : accentOrange,
-                                      width: 3,
-                                    ),
-                                  ),
-                                ),
-                                onChanged: _onOtpChanged,
-                              ),
-                              const SizedBox(height: 12),
-                              if (_errorMessage != null)
-                                MessageBanner(
-                                  message: context.tOrRaw(_errorMessage!),
-                                  type: MessageBannerType.error,
-                                ),
-                              if (_isResending || _isLoading)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              if (!_isFirebaseMode) ...[
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: (_resendCooldown > 0 ||
-                                          _isLoading ||
-                                          _isResending)
-                                      ? null
-                                      : _resendOtp,
-                                  child: Text(
-                                    _resendCooldown > 0
-                                        ? 'Resend in $_resendCooldown s'
-                                        : 'Resend OTP',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: accentOrange,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Spacer(flex: 3),
-                    ],
+            child: Padding(
+              padding: const EdgeInsets.only(top: 55),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.verified_user_rounded,
+                    color: Colors.white,
+                    size: 64,
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Text(
+                    context.t('msgVerifyOtp'),
+                    style: GoogleFonts.inter(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: _otpController,
+                          focusNode: _otpFocusNode,
+                          keyboardType: TextInputType.number,
+                          maxLength: AppConstants.otpLength,
+                          enabled: !_isLoading && !_isResending,
+                          textAlign: TextAlign.center,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(
+                              AppConstants.otpLength,
+                            ),
+                          ],
+                          style: GoogleFonts.inter(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: accentOrange,
+                            letterSpacing: 1.5,
+                          ),
+                          decoration: InputDecoration(
+                            counterText: '',
+                            hintText: 'Enter 6 digit OTP here',
+                            hintStyle: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.lightText,
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: accentOrange.withOpacity(0.35),
+                                width: 2,
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: _errorMessage != null
+                                    ? AppTheme.error
+                                    : accentOrange,
+                                width: 3,
+                              ),
+                            ),
+                          ),
+                          onChanged: _onOtpChanged,
+                        ),
+                        const SizedBox(height: 12),
+                        if (_errorMessage != null)
+                          MessageBanner(
+                            message: context.tOrRaw(_errorMessage!),
+                            type: MessageBannerType.error,
+                          ),
+                        if (_isResending || _isLoading)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: CircularProgressIndicator(),
+                          ),
+                        if (!_isFirebaseMode) ...[
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: (_resendCooldown > 0 ||
+                                    _isLoading ||
+                                    _isResending)
+                                ? null
+                                : _resendOtp,
+                            child: Text(
+                              _resendCooldown > 0
+                                  ? 'Resend in $_resendCooldown s'
+                                  : 'Resend OTP',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: accentOrange,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
