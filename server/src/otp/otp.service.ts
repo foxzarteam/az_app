@@ -133,11 +133,12 @@ export class OtpService {
     );
     if (sessionError) return sessionError;
 
-    const smsError = await this.sendSmsViaFast2Sms(dto.mobileNumber, otp);
-    if (smsError) return smsError;
-
-    const apiKey = this.config.get<string>('FAST2SMS_API_KEY');
-    if (!apiKey) {
+    // For debugging/dev: store OTP in memory so `/api/otp/dev` can show it.
+    // In production, this is only allowed when ALLOW_OTP_DEV=true.
+    const allowOtpDev =
+      process.env.NODE_ENV !== 'production' ||
+      this.config.get<string>('ALLOW_OTP_DEV') === 'true';
+    if (allowOtpDev) {
       this.devOtps.unshift({
         mobile: dto.mobileNumber,
         otp,
@@ -147,6 +148,9 @@ export class OtpService {
         this.devOtps.pop();
       }
     }
+
+    const smsError = await this.sendSmsViaFast2Sms(dto.mobileNumber, otp);
+    if (smsError) return smsError;
 
     return { success: true, message: MSG_OTP_SENT };
   }
