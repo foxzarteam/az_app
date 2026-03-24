@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'l10n/app_locale.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
-import 'utils/constants.dart';
+import 'widgets/network_guard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,25 +23,27 @@ class MyApp extends StatelessWidget {
       child: Consumer<AppLocale>(
         builder: (_, appLocale, __) {
           final inter = GoogleFonts.interTextTheme();
-          return MaterialApp(
-            title: appLocale.t('appName'),
-            debugShowCheckedModeBanner: false,
-            locale: Locale(appLocale.locale),
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: AppTheme.primaryBlue,
-                primary: AppTheme.primaryBlue,
-                secondary: AppTheme.accentOrange,
+          return NetworkGuard(
+            child: MaterialApp(
+              title: appLocale.t('appName'),
+              debugShowCheckedModeBanner: false,
+              locale: Locale(appLocale.locale),
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: AppTheme.primaryBlue,
+                  primary: AppTheme.primaryBlue,
+                  secondary: AppTheme.accentOrange,
+                ),
+                useMaterial3: true,
+                scaffoldBackgroundColor: AppTheme.mainBackground,
+                fontFamily: GoogleFonts.inter().fontFamily,
+                textTheme: inter.apply(
+                  bodyColor: AppTheme.primaryText,
+                  displayColor: AppTheme.primaryText,
+                ),
               ),
-              useMaterial3: true,
-              scaffoldBackgroundColor: AppTheme.mainBackground,
-              fontFamily: GoogleFonts.inter().fontFamily,
-              textTheme: inter.apply(
-                bodyColor: AppTheme.primaryText,
-                displayColor: AppTheme.primaryText,
-              ),
+              home: const SplashScreen(),
             ),
-            home: const SplashScreen(),
           );
         },
       ),

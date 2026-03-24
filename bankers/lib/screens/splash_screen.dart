@@ -6,6 +6,7 @@ import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../services/api_service.dart';
+import 'main_shell_screen.dart';
 import 'signup_screen.dart';
 import 'mpin_login_screen.dart';
 
@@ -24,40 +25,78 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToNext() async {
-    await Future.delayed(const Duration(milliseconds: 2200));
+    final prefsFuture = SharedPreferences.getInstance();
+    // Keep a short minimum splash display for smoother transition,
+    // while loading data in parallel.
+    await Future.wait([
+      prefsFuture,
+      Future.delayed(const Duration(milliseconds: 700)),
+    ]);
     if (!mounted) return;
 
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await prefsFuture;
     final mobileNumber = prefs.getString(AppConstants.keyMobileNumber);
+    final hasSignedUpOnDevice =
+        prefs.getBool(AppConstants.keyHasSignedUpOnDevice) ?? false;
 
-    String? mpin;
+    var localMpin = prefs.getString(AppConstants.keyMPin)?.trim();
+    if (localMpin != null && localMpin.isEmpty) localMpin = null;
 
-    if (mobileNumber != null && mobileNumber.isNotEmpty) {
-      final dbUser = await ApiService.instance.getUserByMobile(mobileNumber);
-      if (dbUser != null) {
-        mpin = dbUser['mpin']?.toString();
-        final userName = dbUser['user_name']?.toString();
-        if (userName != null) {
-          await prefs.setString(AppConstants.keyUserName, userName);
-        }
-      } else {
-        mpin = prefs.getString(AppConstants.keyMPin);
-      }
-    } else {
-      mpin = prefs.getString(AppConstants.keyMPin);
-    }
-
-    if (!mounted) return;
-
-    if (mpin != null && mpin.isNotEmpty) {
+    // 1) MPIN already on device → always open MPIN login after splash (session gate).
+    if (localMpin != null) {
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MPinLoginScreen()),
       );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const SignUpScreen()),
-      );
+      return;
     }
+
+    // 2) No local MPIN but we know mobile → sync from server if user already set MPIN.
+    if (mobileNumber != null && mobileNumber.isNotEmpty) {
+      Map<String, dynamic>? dbUser;
+      try {
+        dbUser = await ApiService.instance
+            .getUserByMobile(mobileNumber)
+            .timeout(const Duration(milliseconds: 1500));
+      } catch (_) {
+        dbUser = null;
+      }
+      if (dbUser != null) {
+        final userName = dbUser['user_name']?.toString();
+        if (userName != null && userName.isNotEmpty) {
+          await prefs.setString(AppConstants.keyUserName, userName);
+        }
+        final serverMpin = dbUser['mpin']?.toString().trim() ?? '';
+        if (serverMpin.isNotEmpty) {
+          await prefs.setString(AppConstants.keyMPin, serverMpin);
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const MPinLoginScreen()),
+          );
+          return;
+        }
+      }
+    }
+
+    if (!mounted) return;
+
+    // 3) Signed up on this device but no MPIN stored or on server → home (finish setup inside app).
+    if (hasSignedUpOnDevice) {
+      final userName =
+          prefs.getString(AppConstants.keyUserName) ??
+              AppConstants.defaultUserName;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => MainShellScreen(userName: userName),
+        ),
+      );
+      return;
+    }
+
+    // 4) No account / first launch → registration.
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const SignUpScreen()),
+    );
   }
 
   @override

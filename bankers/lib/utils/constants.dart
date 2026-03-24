@@ -24,6 +24,7 @@ class AppConstants {
   static const String keyOtpExpiry = 'otp_expiry';
   static const String keyOtpValue = 'otp_value';
   static const String keyAppLocale = 'app_locale';
+  static const String keyHasSignedUpOnDevice = 'has_signed_up_on_device';
 
   // Default / placeholder strings
   static const String defaultUserName = 'User';
@@ -48,6 +49,11 @@ class AppConstants {
   static const String msgMpinVerifyFailed =
       'MPIN verification failed. Please try again.';
   static const String msgMpinResetSuccess = 'Your MPIN reset successfully';
+  static const String titleInsufficientBalance = 'Insufficient balance';
+  static const String msgInsufficientBalanceWithdraw =
+      'You do not have sufficient balance to withdraw.';
+  static const String labelOk = 'OK';
+
   static const String msgMobileNotFound = 'Mobile number not found. Please signup again.';
   static const String msgUserNotFound = 'User not found. Please signup again.';
   static const String msgMobileMismatch = 'Mobile number mismatch. Please signup again.';

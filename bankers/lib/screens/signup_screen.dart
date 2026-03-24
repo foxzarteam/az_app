@@ -10,7 +10,7 @@ import '../utils/constants.dart';
 import '../utils/validators.dart';
 import '../widgets/animated_error_banner.dart';
 import '../services/api_service.dart';
-import 'mpin_login_screen.dart';
+import 'main_shell_screen.dart';
 import 'mpin_set_screen.dart';
 import 'otp_verification_screen.dart';
 
@@ -61,9 +61,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       final dbUser = await ApiService.instance.getUserByMobile(mobileNumber);
       final accountExists = dbUser != null;
-      final savedMPin =
-          dbUser?['mpin']?.toString().trim() ?? '';
-      final hasMPin = savedMPin.isNotEmpty;
 
       // Forgot MPIN: only allow if number is already registered.
       if (widget.isForgotMPIN && !accountExists) {
@@ -73,23 +70,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             _errorMessage = 'msgNumberNotRegistered';
           });
         }
-        return;
-      }
-
-      // Normal flow: if MPIN already exists, go to MPIN login directly.
-      if (!widget.isForgotMPIN && accountExists && hasMPin) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          await prefs.setString(
-            AppConstants.keyUserName,
-            dbUser!['user_name']?.toString() ??
-                AppConstants.defaultUserName,
-          );
-        }
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MPinLoginScreen()),
-        );
         return;
       }
 
@@ -137,9 +117,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               final userName =
                   refreshedUser?['user_name']?.toString() ??
                       AppConstants.defaultUserName;
-              final savedMPin2 = refreshedUser?['mpin']?.toString().trim() ?? '';
-              final hasMPin2 = savedMPin2.isNotEmpty;
-
               final prefs2 = await SharedPreferences.getInstance();
               await prefs2.setString(
                 AppConstants.keyMobileNumber,
@@ -150,6 +127,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 userName,
               );
               await prefs2.setBool(AppConstants.keyIsLoggedIn, true);
+              await prefs2.setBool(
+                AppConstants.keyHasSignedUpOnDevice,
+                true,
+              );
               await ApiService.instance.updateUserLoginStatus(
                 mobileNumber,
                 true,
@@ -173,12 +154,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (_) => hasMPin2
-                      ? const MPinLoginScreen()
-                      : MPinSetScreen(
-                          userName: userName,
-                          mobileNumber: mobileNumber,
-                        ),
+                  builder: (_) => MainShellScreen(userName: userName),
                 ),
               );
             } catch (_) {

@@ -8,7 +8,10 @@ import 'dashboard_screen.dart';
 import 'lead_form_screen.dart';
 
 class AddLeadScreen extends StatelessWidget {
-  const AddLeadScreen({super.key});
+  const AddLeadScreen({super.key, this.userName});
+
+  /// Shown in the app bar; falls back to [AppConstants.defaultUserName].
+  final String? userName;
 
   static void _openLeadForm(BuildContext context) {
     Navigator.of(context).push(
@@ -23,7 +26,7 @@ class AddLeadScreen extends StatelessWidget {
       body: Column(
         children: [
           CommonNavBar(
-            userName: AppConstants.defaultUserName,
+            userName: userName ?? AppConstants.defaultUserName,
             showBackButton: true,
             onBackPressed: () => Navigator.of(context).pop(),
           ),

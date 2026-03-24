@@ -15,6 +15,7 @@ import 'leads_screen.dart';
 import 'wallet_screen.dart';
 import 'personal_details_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'mpin_set_screen.dart';
 
 /// Single shell: one header, one footer. Only the middle content changes with animation.
 class MainShellScreen extends StatefulWidget {
@@ -211,6 +212,42 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     ),
                     const SizedBox(height: 16),
                     DrawerMenuItem(
+                      icon: Icons.lock_outline_rounded,
+                      title: 'MPIN',
+                      subtitle: 'Set your MPIN for app lock',
+                      color: AppTheme.darkBlue,
+                      onTap: () async {
+                        Navigator.of(context).pop();
+                        final details = await UserPrefsHelper.getUserDetails();
+                        if (!mounted) return;
+
+                        final mobile = details['mobile'] ?? '';
+                        final userName = details['userName'] ?? widget.userName;
+                        if (mobile.isEmpty ||
+                            mobile == AppConstants.defaultMaskedMobile) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Mobile number not found. Please signup again.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MPinSetScreen(
+                              userName: userName,
+                              mobileNumber: mobile,
+                              launchedFromSettings: true,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DrawerMenuItem(
                       icon: Icons.account_balance_wallet_rounded,
                       title: context.t('labelWallet'),
                       subtitle: context.t('subtitleWallet'),
@@ -219,7 +256,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => WalletScreen(userName: widget.userName),
+                            builder: (_) => WalletScreen(
+                              userName: widget.userName,
+                              shellNav: _walletShellNav(),
+                            ),
                           ),
                         );
                       },
@@ -240,8 +280,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
       case 0:
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
-          onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
-          onWalletTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
+          onAddLeadTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AddLeadScreen(userName: widget.userName),
+                ),
+              ),
+          onWalletTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => WalletScreen(
+                    userName: widget.userName,
+                    shellNav: _walletShellNav(),
+                  ),
+                ),
+              ),
+          onKycTap: () => _goTo(2),
         );
       case 1:
         return const LeadsContent();
@@ -254,14 +306,57 @@ class _MainShellScreenState extends State<MainShellScreen> {
       default:
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
-          onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
-          onWalletTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
+          onAddLeadTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AddLeadScreen(userName: widget.userName),
+                ),
+              ),
+          onWalletTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => WalletScreen(
+                    userName: widget.userName,
+                    shellNav: _walletShellNav(),
+                  ),
+                ),
+              ),
+          onKycTap: () => _goTo(2),
         );
     }
   }
 
   void _showShareOptionsFromDashboard() {
     DashboardScreen.showShareOptions(context);
+  }
+
+  WalletShellNav _walletShellNav() {
+    return WalletShellNav(
+      onHome: () {
+        Navigator.of(context).pop();
+        _goTo(0);
+      },
+      onLeads: () {
+        Navigator.of(context).pop();
+        _goTo(1);
+      },
+      onReferral: () {
+        Navigator.of(context).pop();
+        _goTo(2);
+      },
+      onCenterPlus: () {
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            MaterialPageRoute(
+              builder: (_) => AddLeadScreen(userName: name),
+            ),
+          );
+        });
+      },
+      onWallet: () {},
+    );
   }
 
   @override
@@ -307,9 +402,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
             currentIndex: _currentIndex.clamp(0, 3),
             onHomeTap: () => _goTo(0),
             onLeadsTap: () => _goTo(1),
-            onCenterTap: () {},
+            onCenterTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AddLeadScreen(userName: widget.userName),
+                  ),
+                ),
             onReferralTap: null,
-            onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
+            onMyLeadsTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => WalletScreen(
+                      userName: widget.userName,
+                      shellNav: _walletShellNav(),
+                    ),
+                  ),
+                ),
           ),
         ],
       ),

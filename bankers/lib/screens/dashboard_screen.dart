@@ -10,7 +10,6 @@ import '../theme/app_theme.dart';
 import '../widgets/user_qr_code_widget.dart';
 import '../config/app_config.dart';
 import '../widgets/carousel_banner.dart';
-import '../widgets/app_image.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/drawer_menu_item.dart';
@@ -94,6 +93,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _openPersonalDetails(BuildContext context) {
     Navigator.of(context).pop();
+    _pushPersonalDetailsScreen(context);
+  }
+
+  void _pushPersonalDetailsScreen(BuildContext context) {
     UserPrefsHelper.getUserDetails().then((details) {
       if (!context.mounted) return;
       final mobile = details['mobile'] ?? '';
@@ -143,6 +146,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _showShareOptions() {
     DashboardScreen.showShareOptions(context);
+  }
+
+  WalletShellNav _dashboardWalletShellNav() {
+    return WalletShellNav(
+      onHome: () => Navigator.of(context).pop(),
+      onLeads: () {
+        Navigator.of(context).pop();
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => LeadsScreen(userName: widget.userName),
+          ),
+        );
+      },
+      onReferral: () {
+        Navigator.of(context).pop();
+        UserPrefsHelper.getUserDetails().then((details) {
+          if (!mounted) return;
+          final mobile = details['mobile'] ?? '';
+          Navigator.of(context).push(
+            slideFromRightRoute(
+              PersonalDetailsScreen(
+                userName: widget.userName,
+                mobileNumber: mobile,
+              ),
+            ),
+          );
+        });
+      },
+      onCenterPlus: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            MaterialPageRoute(
+              builder: (_) => AddLeadScreen(userName: widget.userName),
+            ),
+          );
+        });
+      },
+      onWallet: () {},
+    );
   }
 
   Widget _buildProfileDrawer() {
@@ -262,7 +307,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => WalletScreen(userName: widget.userName),
+                            builder: (_) => WalletScreen(
+                              userName: widget.userName,
+                              shellNav: _dashboardWalletShellNav(),
+                            ),
                           ),
                         );
                       },
@@ -292,8 +340,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: _DashboardBodyBuilder(
               onShare: _showShareOptions,
-              onAddLeadTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddLeadScreen())),
-              onWalletTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
+              onAddLeadTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AddLeadScreen(userName: widget.userName),
+                    ),
+                  ),
+              onWalletTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => WalletScreen(
+                        userName: widget.userName,
+                        shellNav: _dashboardWalletShellNav(),
+                      ),
+                    ),
+                  ),
+              onKycTap: () => _pushPersonalDetailsScreen(context),
               carouselPaths: AppConfig.carousel,
               kycBannerPath: AppConfig.kycBanner,
               categoryPromoPaths: _categoryPromoUrls,
@@ -306,7 +366,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: CommonBottomNav(
         currentIndex: 0,
         onLeadsTap: () {},
-        onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
+        onMyLeadsTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => WalletScreen(
+                  userName: widget.userName,
+                  shellNav: _dashboardWalletShellNav(),
+                ),
+              ),
+            ),
       ),
     );
   }
@@ -317,12 +384,14 @@ class DashboardBody extends StatefulWidget {
   final VoidCallback onSharePersonalLoan;
   final VoidCallback? onAddLeadTap;
   final VoidCallback? onWalletTap;
+  final VoidCallback? onKycTap;
 
   const DashboardBody({
     super.key,
     required this.onSharePersonalLoan,
     this.onAddLeadTap,
     this.onWalletTap,
+    this.onKycTap,
   });
 
   @override
@@ -367,6 +436,7 @@ class _DashboardBodyState extends State<DashboardBody> {
       onShare: widget.onSharePersonalLoan,
       onAddLeadTap: widget.onAddLeadTap,
       onWalletTap: widget.onWalletTap,
+      onKycTap: widget.onKycTap,
       carouselPaths: AppConfig.carousel,
       kycBannerPath: AppConfig.kycBanner,
       categoryPromoPaths: _categoryPromoPaths,
@@ -412,6 +482,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback? onAddLeadTap;
   final VoidCallback? onWalletTap;
+  final VoidCallback? onKycTap;
   final List<String> carouselPaths;
   final String kycBannerPath;
   final Map<String, String> categoryPromoPaths;
@@ -422,6 +493,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
     required this.onShare,
     this.onAddLeadTap,
     this.onWalletTap,
+    this.onKycTap,
     this.carouselPaths = const [],
     required this.kycBannerPath,
     this.categoryPromoPaths = const {},
@@ -451,7 +523,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
             const SizedBox(height: 24),
             _buildCarouselBanner(),
             const SizedBox(height: 24),
-            _buildKYCBanner(AppTheme.primaryBlue, AppTheme.accentOrange),
+            _buildKYCBanner(AppTheme.primaryBlue, AppTheme.accentOrange, onKycTap),
           ],
         ),
       ),
@@ -466,8 +538,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
     return _copyOfBuildSellAndEarnSection(context, primary, accentOrange, primaryDark, categoryPromoPaths);
   }
 
-  Widget _buildKYCBanner(Color darkBlue, Color accentOrange) {
-    return _copyOfBuildKYCBanner(darkBlue, accentOrange, kycBannerPath);
+  Widget _buildKYCBanner(Color darkBlue, Color accentOrange, VoidCallback? onKycTap) {
+    return _copyOfBuildKYCBanner(darkBlue, accentOrange, kycBannerPath, onKycTap);
   }
 
   Widget _buildCarouselBanner() {
@@ -673,13 +745,15 @@ class _DashboardBodyBuilder extends StatelessWidget {
     Color darkBlue,
     Color accentOrange,
     String kycBannerPath,
+    VoidCallback? onKycTap,
   ) {
-    return Container(
+    final radius = BorderRadius.circular(20);
+    final card = Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.surfaceWhite,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: radius,
         border: Border.all(color: AppTheme.borderColor, width: 1),
         boxShadow: [BoxShadow(color: AppTheme.primaryText.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))],
       ),
@@ -712,6 +786,17 @@ class _DashboardBodyBuilder extends StatelessWidget {
             child: Icon(Icons.arrow_forward_ios_rounded, color: darkBlue, size: 18),
           ),
         ],
+      ),
+    );
+
+    if (onKycTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onKycTap,
+        borderRadius: radius,
+        child: card,
       ),
     );
   }

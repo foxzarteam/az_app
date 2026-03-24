@@ -7,12 +7,34 @@ import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
 import '../utils/validators.dart';
+import '../widgets/common_bottom_nav.dart';
 import '../widgets/common_nav_bar.dart';
+import 'add_lead_screen.dart';
+
+/// Bottom-bar actions when [WalletScreen] is shown on top of another navigator
+/// (e.g. [MainShellScreen]) so tabs can pop the wallet and switch correctly.
+class WalletShellNav {
+  const WalletShellNav({
+    required this.onHome,
+    required this.onLeads,
+    required this.onReferral,
+    required this.onCenterPlus,
+    required this.onWallet,
+  });
+
+  final VoidCallback onHome;
+  final VoidCallback onLeads;
+  final VoidCallback onReferral;
+  final VoidCallback onCenterPlus;
+  /// Wallet tab (already on this screen).
+  final VoidCallback onWallet;
+}
 
 class WalletScreen extends StatefulWidget {
   final String? userName;
+  final WalletShellNav? shellNav;
 
-  const WalletScreen({super.key, this.userName});
+  const WalletScreen({super.key, this.userName, this.shellNav});
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -25,7 +47,6 @@ class _WalletScreenState extends State<WalletScreen> {
   final _ifscController = TextEditingController();
 
   String? _userId;
-  bool _isLoading = false;
   String? _savedUpi;
   String? _savedBankName;
   String? _savedIfscCode;
@@ -34,8 +55,6 @@ class _WalletScreenState extends State<WalletScreen> {
   String _selectedWithdrawMethod = 'upi';
 
   String _balanceDisplay = '0';
-  String _earningDisplay = '0.00';
-  String _redeemDisplay = '0.00';
 
   @override
   void initState() {
@@ -48,12 +67,8 @@ class _WalletScreenState extends State<WalletScreen> {
     if (!mounted) return;
     if (wallet != null) {
       final balance = _numToDisplay(wallet['balance']);
-      final earning = _numToDisplay(wallet['earning']);
-      final redeem = _numToDisplay(wallet['redeem']);
       setState(() {
         _balanceDisplay = balance;
-        _earningDisplay = earning;
-        _redeemDisplay = redeem;
       });
     }
   }
@@ -64,6 +79,45 @@ class _WalletScreenState extends State<WalletScreen> {
     if (v is double) return v.toStringAsFixed(2);
     final s = v.toString().trim();
     return s.isEmpty ? '0.00' : s;
+  }
+
+  double _balanceNumeric() {
+    final s = _balanceDisplay.replaceAll(',', '').trim();
+    return double.tryParse(s) ?? 0.0;
+  }
+
+  void _showInsufficientBalanceDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          AppConstants.titleInsufficientBalance,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            color: AppTheme.primaryText,
+          ),
+        ),
+        content: Text(
+          AppConstants.msgInsufficientBalanceWithdraw,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: AppTheme.secondaryText,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              AppConstants.labelOk,
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryBlue,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadPaymentDetails() async {
@@ -114,7 +168,61 @@ class _WalletScreenState extends State<WalletScreen> {
     super.dispose();
   }
 
+  void _bottomNavHome() {
+    if (widget.shellNav != null) {
+      widget.shellNav!.onHome();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _bottomNavLeads() {
+    if (widget.shellNav != null) {
+      widget.shellNav!.onLeads();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _bottomNavReferral() {
+    if (widget.shellNav != null) {
+      widget.shellNav!.onReferral();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _bottomNavCenter() {
+    if (widget.shellNav != null) {
+      widget.shellNav!.onCenterPlus();
+    } else {
+      final nav = Navigator.of(context);
+      final name = widget.userName;
+      nav.pop();
+      Future.microtask(() {
+        if (!mounted) return;
+        nav.push(
+          MaterialPageRoute(
+            builder: (_) => AddLeadScreen(userName: name),
+          ),
+        );
+      });
+    }
+  }
+
+  void _bottomNavWallet() {
+    if (widget.shellNav != null) {
+      widget.shellNav!.onWallet();
+    }
+  }
+
   void _onWithdrawTap() {
+    final balance = _balanceNumeric();
+    if (balance <= 0) {
+      _showInsufficientBalanceDialog();
+      return;
+    }
+
     final amount = _amountController.text.trim();
     if (amount.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -133,6 +241,10 @@ class _WalletScreenState extends State<WalletScreen> {
           backgroundColor: AppTheme.error,
         ),
       );
+      return;
+    }
+    if (parsed > balance) {
+      _showInsufficientBalanceDialog();
       return;
     }
     if (_savedUpi == null && _savedBankName == null) {
@@ -156,6 +268,9 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.mainBackground,
+      // Keep bottom bar inside the same [Column] as the scroll area (like [MainShellScreen]
+      // and [LeadsScreen]). Using [bottomNavigationBar] with [Column]+[Expanded] body
+      // can leave the body with no height on some devices.
       body: Column(
         children: [
           CommonNavBar(
@@ -174,31 +289,40 @@ class _WalletScreenState extends State<WalletScreen> {
                   _buildWithdrawAmountSection(),
                   const SizedBox(height: 20),
                   _buildMethodCard(
-                          icon: Icons.account_balance_wallet_rounded,
-                          title: context.t('labelUpi'),
-                          subtitle: context.t('labelUpiSubtitle'),
-                          hasAdded: _savedUpi != null && _savedUpi!.isNotEmpty,
-                          isSelected: _selectedWithdrawMethod == 'upi',
-                          onTap: () {
-                            setState(() => _selectedWithdrawMethod = 'upi');
-                            _showUpiSheet();
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        _buildMethodCard(
-                          icon: Icons.account_balance_rounded,
-                          title: context.t('labelBankTransfer'),
-                          subtitle: context.t('labelBankAc'),
-                          hasAdded: _savedBankName != null && _savedBankName!.isNotEmpty,
-                          isSelected: _selectedWithdrawMethod == 'bank',
-                          onTap: () {
-                            setState(() => _selectedWithdrawMethod = 'bank');
-                            _showBankSheet();
-                          },
-                        ),
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: context.t('labelUpi'),
+                    subtitle: context.t('labelUpiSubtitle'),
+                    hasAdded: _savedUpi != null && _savedUpi!.isNotEmpty,
+                    isSelected: _selectedWithdrawMethod == 'upi',
+                    onTap: () {
+                      setState(() => _selectedWithdrawMethod = 'upi');
+                      _showUpiSheet();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMethodCard(
+                    icon: Icons.account_balance_rounded,
+                    title: context.t('labelBankTransfer'),
+                    subtitle: context.t('labelBankAc'),
+                    hasAdded:
+                        _savedBankName != null && _savedBankName!.isNotEmpty,
+                    isSelected: _selectedWithdrawMethod == 'bank',
+                    onTap: () {
+                      setState(() => _selectedWithdrawMethod = 'bank');
+                      _showBankSheet();
+                    },
+                  ),
                 ],
               ),
             ),
+          ),
+          CommonBottomNav(
+            currentIndex: 3,
+            onHomeTap: _bottomNavHome,
+            onLeadsTap: _bottomNavLeads,
+            onCenterTap: _bottomNavCenter,
+            onReferralTap: _bottomNavReferral,
+            onMyLeadsTap: _bottomNavWallet,
           ),
         ],
       ),

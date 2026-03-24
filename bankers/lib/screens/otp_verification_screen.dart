@@ -9,7 +9,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/message_banner.dart';
-import 'mpin_login_screen.dart';
+import 'main_shell_screen.dart';
 import 'mpin_set_screen.dart';
 
 enum OtpVerifyMode { firebasePhone, backendDb }
@@ -74,11 +74,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     });
   }
 
-  Future<void> _saveAndRoute({required bool hasMPin, required String userName}) async {
+  Future<void> _saveAndRoute({required String userName}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(AppConstants.keyMobileNumber, widget.mobileNumber);
     await prefs.setString(AppConstants.keyUserName, userName);
     await prefs.setBool(AppConstants.keyIsLoggedIn, true);
+    await prefs.setBool(AppConstants.keyHasSignedUpOnDevice, true);
 
     await _api.updateUserLoginStatus(widget.mobileNumber, true);
 
@@ -97,20 +98,11 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       return;
     }
 
-    if (hasMPin) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MPinLoginScreen()),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => MPinSetScreen(
-            userName: userName,
-            mobileNumber: widget.mobileNumber,
-          ),
-        ),
-      );
-    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => MainShellScreen(userName: userName),
+      ),
+    );
   }
 
   Future<void> _continueAfterSuccess() async {
@@ -118,11 +110,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
     final userName = refreshedUser?['user_name']?.toString() ??
         AppConstants.defaultUserName;
-    final savedMPin =
-        refreshedUser?['mpin']?.toString().trim() ?? '';
-    final hasMPin = savedMPin.isNotEmpty;
-
-    await _saveAndRoute(hasMPin: hasMPin, userName: userName);
+    await _saveAndRoute(userName: userName);
   }
 
   Future<void> _verifyViaFirebase(String otp) async {

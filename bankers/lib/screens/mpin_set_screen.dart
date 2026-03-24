@@ -12,12 +12,14 @@ class MPinSetScreen extends StatefulWidget {
   final String userName;
   final String mobileNumber;
   final bool isResetMPIN;
+  final bool launchedFromSettings;
 
   const MPinSetScreen({
     super.key,
     required this.userName,
     required this.mobileNumber,
     this.isResetMPIN = false,
+    this.launchedFromSettings = false,
   });
 
   @override
@@ -27,43 +29,14 @@ class MPinSetScreen extends StatefulWidget {
 class _MPinSetScreenState extends State<MPinSetScreen> {
   final TextEditingController _mpinController = TextEditingController();
   final FocusNode _mpinFocusNode = FocusNode();
-  String _pin = '';
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _checkExistingMPin();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mpinFocusNode.requestFocus();
     });
-  }
-
-  Future<void> _checkExistingMPin() async {
-    if (widget.isResetMPIN) {
-      return;
-    }
-    
-    final prefs = await SharedPreferences.getInstance();
-    final dbUser = await ApiService.instance.getUserByMobile(widget.mobileNumber);
-    final existingMPin = dbUser?['mpin']?.toString();
-    
-    if (existingMPin != null && existingMPin.isNotEmpty && mounted) {
-      await prefs.setString(AppConstants.keyMPin, existingMPin);
-      await prefs.setString(AppConstants.keyUserName, widget.userName);
-      await prefs.setString(AppConstants.keyMobileNumber, widget.mobileNumber);
-      await prefs.setBool(AppConstants.keyIsLoggedIn, true);
-      await ApiService.instance.updateUserLoginStatus(widget.mobileNumber, true);
-      
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => MainShellScreen(userName: widget.userName, initialIndex: 0),
-          ),
-          (route) => false,
-        );
-      }
-    }
   }
 
   @override
@@ -74,7 +47,6 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
   }
 
   void _onMpinChanged(String value) {
-    setState(() => _pin = value);
     if (value.length == AppConstants.mpinLength && !_isSaving) {
       _saveMPin(value);
     }
@@ -82,6 +54,10 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
 
   void _goBack() {
     FocusManager.instance.primaryFocus?.unfocus();
+    if (widget.launchedFromSettings) {
+      Navigator.of(context).pop();
+      return;
+    }
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const SignUpScreen()),
       (route) => false,
@@ -127,6 +103,7 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
     await prefs.setString(AppConstants.keyUserName, widget.userName);
     await prefs.setString(AppConstants.keyMobileNumber, widget.mobileNumber);
     await prefs.setBool(AppConstants.keyIsLoggedIn, true);
+    await prefs.setBool(AppConstants.keyHasSignedUpOnDevice, true);
 
     if (mounted) {
       setState(() => _isSaving = false);
@@ -135,12 +112,17 @@ class _MPinSetScreenState extends State<MPinSetScreen> {
         await Future.delayed(const Duration(milliseconds: 500));
       }
       if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => MainShellScreen(userName: widget.userName, initialIndex: 0),
-          ),
-          (route) => false,
-        );
+        if (widget.launchedFromSettings) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) =>
+                  MainShellScreen(userName: widget.userName, initialIndex: 0),
+            ),
+            (route) => false,
+          );
+        }
       }
     }
   }

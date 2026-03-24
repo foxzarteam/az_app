@@ -8,7 +8,6 @@ import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
-import '../widgets/app_image.dart';
 import 'add_lead_screen.dart';
 import 'lead_list_screen.dart';
 import 'wallet_screen.dart';
@@ -487,7 +486,38 @@ class LeadsScreen extends StatelessWidget {
             onHomeTap: () => Navigator.of(context).pop(),
             onLeadsTap: () {},
             onCenterTap: () {},
-            onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: userName))),
+            onMyLeadsTap: () {
+              final nav = Navigator.of(context);
+              nav.push(
+                MaterialPageRoute(
+                  builder: (_) => WalletScreen(
+                    userName: userName,
+                    shellNav: WalletShellNav(
+                      onHome: () {
+                        nav.pop();
+                        nav.pop();
+                      },
+                      onLeads: () => nav.pop(),
+                      onReferral: () {
+                        nav.pop();
+                        nav.pop();
+                      },
+                      onCenterPlus: () {
+                        nav.pop();
+                        Future.microtask(() {
+                          nav.push(
+                            MaterialPageRoute(
+                              builder: (_) => AddLeadScreen(userName: userName),
+                            ),
+                          );
+                        });
+                      },
+                      onWallet: () {},
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

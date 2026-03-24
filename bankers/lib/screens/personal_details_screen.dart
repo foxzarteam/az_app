@@ -7,6 +7,8 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
+import 'add_lead_screen.dart';
+import 'leads_screen.dart';
 import 'wallet_screen.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
@@ -114,7 +116,43 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
           CommonBottomNav(
             currentIndex: 0,
             onHomeTap: () => Navigator.of(context).pop(),
-            onMyLeadsTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WalletScreen(userName: widget.userName))),
+            onMyLeadsTap: () {
+              final nav = Navigator.of(context);
+              nav.push(
+                MaterialPageRoute(
+                  builder: (_) => WalletScreen(
+                    userName: widget.userName,
+                    shellNav: WalletShellNav(
+                      onHome: () {
+                        nav.pop();
+                        nav.pop();
+                      },
+                      onLeads: () {
+                        nav.pop();
+                        nav.push(
+                          MaterialPageRoute(
+                            builder: (_) => LeadsScreen(userName: widget.userName),
+                          ),
+                        );
+                      },
+                      onReferral: () => nav.pop(),
+                      onCenterPlus: () {
+                        nav.pop();
+                        Future.microtask(() {
+                          nav.push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  AddLeadScreen(userName: widget.userName),
+                            ),
+                          );
+                        });
+                      },
+                      onWallet: () {},
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
