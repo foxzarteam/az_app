@@ -3,12 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_locale.dart';
 import '../utils/constants.dart';
+import '../utils/page_routes.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
+import '../widgets/wallet_shell_nav.dart';
 import 'add_lead_screen.dart';
 import 'leads_screen.dart';
+import 'referral_screen.dart';
 import 'wallet_screen.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
@@ -90,6 +93,144 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  WalletShellNav _pdAddLeadNav(NavigatorState nav) {
+    return WalletShellNav(
+      onHome: () {
+        nav.pop();
+        nav.pop();
+      },
+      onLeads: () {
+        nav.pop();
+        nav.push(
+          smoothPushRoute(
+            LeadsScreen(userName: widget.userName),
+          ),
+        );
+      },
+      onReferral: () {
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              ReferralScreen(
+                userName: widget.userName,
+                shellNav: _pdReferralNav(nav),
+              ),
+            ),
+          );
+        });
+      },
+      onCenterPlus: () {},
+      onWallet: () {
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              WalletScreen(
+                userName: widget.userName,
+                shellNav: _pdWalletNav(nav),
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  WalletShellNav _pdWalletNav(NavigatorState nav) {
+    return WalletShellNav(
+      onHome: () {
+        nav.pop();
+        nav.pop();
+      },
+      onLeads: () {
+        nav.pop();
+        nav.push(
+          smoothPushRoute(
+            LeadsScreen(userName: widget.userName),
+          ),
+        );
+      },
+      onReferral: () {
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              ReferralScreen(
+                userName: widget.userName,
+                shellNav: _pdReferralNav(nav),
+              ),
+            ),
+          );
+        });
+      },
+      onCenterPlus: () {
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: _pdAddLeadNav(nav),
+              ),
+            ),
+          );
+        });
+      },
+      onWallet: () {},
+    );
+  }
+
+  WalletShellNav _pdReferralNav(NavigatorState nav) {
+    return WalletShellNav(
+      onHome: () {
+        nav.pop();
+        nav.pop();
+      },
+      onLeads: () {
+        nav.pop();
+        nav.push(
+          smoothPushRoute(
+            LeadsScreen(userName: widget.userName),
+          ),
+        );
+      },
+      onReferral: () {},
+      onCenterPlus: () {
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: _pdAddLeadNav(nav),
+              ),
+            ),
+          );
+        });
+      },
+      onWallet: () {
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              WalletScreen(
+                userName: widget.userName,
+                shellNav: _pdWalletNav(nav),
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,36 +260,10 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
             onMyLeadsTap: () {
               final nav = Navigator.of(context);
               nav.push(
-                MaterialPageRoute(
-                  builder: (_) => WalletScreen(
+                smoothPushRoute(
+                  WalletScreen(
                     userName: widget.userName,
-                    shellNav: WalletShellNav(
-                      onHome: () {
-                        nav.pop();
-                        nav.pop();
-                      },
-                      onLeads: () {
-                        nav.pop();
-                        nav.push(
-                          MaterialPageRoute(
-                            builder: (_) => LeadsScreen(userName: widget.userName),
-                          ),
-                        );
-                      },
-                      onReferral: () => nav.pop(),
-                      onCenterPlus: () {
-                        nav.pop();
-                        Future.microtask(() {
-                          nav.push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  AddLeadScreen(userName: widget.userName),
-                            ),
-                          );
-                        });
-                      },
-                      onWallet: () {},
-                    ),
+                    shellNav: _pdWalletNav(nav),
                   ),
                 ),
               );
@@ -246,19 +361,25 @@ class _PersonalDetailsContentState extends State<PersonalDetailsContent> {
 
   @override
   Widget build(BuildContext context) {
+    final kb = MediaQuery.viewInsetsOf(context).bottom;
     return SafeArea(
       top: false,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-        child: Form(
-          key: _formKey,
-          child: PersonalDetailsFormCard(
-            userName: widget.userName,
-            mobileNumber: widget.mobileNumber,
-            emailController: _emailController,
-            pincodeController: _pincodeController,
-            isLoading: _isLoading,
-            onSubmit: _submit,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.only(bottom: kb),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+          child: Form(
+            key: _formKey,
+            child: PersonalDetailsFormCard(
+              userName: widget.userName,
+              mobileNumber: widget.mobileNumber,
+              emailController: _emailController,
+              pincodeController: _pincodeController,
+              isLoading: _isLoading,
+              onSubmit: _submit,
+            ),
           ),
         ),
       ),

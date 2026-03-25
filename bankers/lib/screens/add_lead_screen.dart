@@ -3,15 +3,26 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
+import '../utils/page_routes.dart';
+import '../widgets/common_bottom_nav.dart';
 import '../widgets/common_nav_bar.dart';
+import '../widgets/wallet_shell_nav.dart';
 import 'dashboard_screen.dart';
 import 'lead_form_screen.dart';
+import 'leads_screen.dart';
+import 'referral_screen.dart';
+import 'wallet_screen.dart';
 
 class AddLeadScreen extends StatelessWidget {
-  const AddLeadScreen({super.key, this.userName});
+  const AddLeadScreen({super.key, this.userName, this.shellNav});
 
   /// Shown in the app bar; falls back to [AppConstants.defaultUserName].
   final String? userName;
+
+  /// When set (e.g. from [MainShellScreen]), bottom bar pops/switches like other shell pages.
+  final WalletShellNav? shellNav;
+
+  String get _name => userName ?? AppConstants.defaultUserName;
 
   static void _openLeadForm(BuildContext context) {
     Navigator.of(context).push(
@@ -21,31 +32,82 @@ class AddLeadScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.mainBackground,
-      body: Column(
-        children: [
-          CommonNavBar(
-            userName: userName ?? AppConstants.defaultUserName,
-            showBackButton: true,
-            onBackPressed: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildShareHeader(),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(context),
-                  const SizedBox(height: 24),
-                  _buildProductList(context),
-                ],
+    // Ignore transient window insets when the system share sheet opens so layout does not jump.
+    final mq = MediaQuery.of(context);
+    return MediaQuery(
+      data: mq.copyWith(viewInsets: EdgeInsets.zero),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: AppTheme.mainBackground,
+        body: Column(
+          children: [
+            CommonNavBar(
+              userName: userName ?? AppConstants.defaultUserName,
+              showBackButton: true,
+              onBackPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildShareHeader(),
+                    const SizedBox(height: 24),
+                    _buildActionButtons(context),
+                    const SizedBox(height: 24),
+                    _buildProductList(context),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+            CommonBottomNav(
+              // No tab uses index 4 — center "+" is this screen; avoid wrong highlight.
+              currentIndex: 4,
+              onHomeTap: () {
+                if (shellNav != null) {
+                  shellNav!.onHome();
+                  return;
+                }
+                Navigator.of(context).pop();
+              },
+              onLeadsTap: () {
+                if (shellNav != null) {
+                  shellNav!.onLeads();
+                  return;
+                }
+                final nav = Navigator.of(context);
+                nav.pop();
+                Future.microtask(() {
+                  nav.push(smoothPushRoute(LeadsScreen(userName: _name)));
+                });
+              },
+              onCenterTap: () {
+                if (shellNav != null) {
+                  shellNav!.onCenterPlus();
+                }
+              },
+              onReferralTap: () {
+                if (shellNav != null) {
+                  shellNav!.onReferral();
+                  return;
+                }
+                Navigator.of(context).push(
+                  smoothPushRoute(ReferralScreen(userName: _name)),
+                );
+              },
+              onMyLeadsTap: () {
+                if (shellNav != null) {
+                  shellNav!.onWallet();
+                  return;
+                }
+                Navigator.of(context).push(
+                  smoothPushRoute(WalletScreen(userName: _name)),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -112,7 +174,8 @@ class AddLeadScreen extends StatelessWidget {
                 iconColor: p.iconColor,
                 showShareLink: p.showShareLink,
                 onAdd: () => _openLeadForm(context),
-                onShareLink: () => DashboardScreen.showShareOptions(context),
+                onShareLink: () =>
+                    DashboardScreen.showShareForProduct(context, p.title),
               ),
             ),
           )
@@ -189,75 +252,46 @@ class _ProductItem {
   });
 }
 
-class _ZoomingShareLinkButton extends StatefulWidget {
+/// Gradient-bordered chip; kept static (no pulsing scale) so the list stays visually stable.
+class _SellNowChipButton extends StatelessWidget {
   final VoidCallback? onTap;
 
-  const _ZoomingShareLinkButton({this.onTap});
-
-  @override
-  State<_ZoomingShareLinkButton> createState() => _ZoomingShareLinkButtonState();
-}
-
-class _ZoomingShareLinkButtonState extends State<_ZoomingShareLinkButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 2400),
-      vsync: this,
-    )..repeat(reverse: true);
-    _scale = Tween<double>(begin: 1.0, end: 1.06).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  const _SellNowChipButton({this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scale,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: const LinearGradient(
-            colors: [AppTheme.primaryBlue, AppTheme.accentOrange],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          colors: [AppTheme.primaryBlue, AppTheme.accentOrange],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        padding: const EdgeInsets.all(2),
-        child: Material(
-          color: AppTheme.white,
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Material(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(10),
-          child: InkWell(
-            onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(10),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.link_rounded, size: 16, color: AppTheme.primaryText),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Share Link',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryText,
-                    ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.local_offer_outlined, size: 16, color: AppTheme.primaryText),
+                const SizedBox(width: 6),
+                Text(
+                  AppConstants.buttonSellNow,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryText,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -339,7 +373,7 @@ class _ProductRow extends StatelessWidget {
             ),
           ),
           showShareLink
-              ? _ZoomingShareLinkButton(onTap: onShareLink)
+              ? _SellNowChipButton(onTap: onShareLink)
               : Material(
                   color: AppTheme.white,
                   borderRadius: BorderRadius.circular(10),

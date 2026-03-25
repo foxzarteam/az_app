@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -167,9 +168,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
           },
           verificationFailed: (FirebaseAuthException e) {
             if (didNavigate || !mounted) return;
+            debugPrint(
+              'Firebase verifyPhoneNumber failed: code=${e.code} message=${e.message}',
+            );
             setState(() {
               _isLoading = false;
-              _errorMessage = 'msgErrorTryAgain';
+              // Missing SHA / Play Integrity often surfaces as generic or web errors.
+              if (e.code == 'web-context-cancelled' ||
+                  e.code == 'missing-client-identifier' ||
+                  (e.message?.contains('sessionStorage') ?? false) ||
+                  (e.message?.contains('initial state') ?? false)) {
+                _errorMessage = 'msgFirebasePhoneSetup';
+              } else {
+                _errorMessage = 'msgErrorTryAgain';
+              }
             });
           },
           codeSent: (verificationId, _) {

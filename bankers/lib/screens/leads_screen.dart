@@ -5,16 +5,26 @@ import '../config/app_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
+import '../utils/page_routes.dart';
 import '../utils/user_prefs_helper.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
+import '../widgets/wallet_shell_nav.dart';
 import 'add_lead_screen.dart';
 import 'lead_list_screen.dart';
 import 'wallet_screen.dart';
+import 'referral_screen.dart';
 
 /// Content-only widget for Leads (no nav/footer). Used by MainShellScreen.
 class LeadsContent extends StatefulWidget {
-  const LeadsContent({super.key});
+  const LeadsContent({
+    super.key,
+    this.userName = AppConstants.defaultUserName,
+    this.addLeadShellNav,
+  });
+
+  final String userName;
+  final WalletShellNav? addLeadShellNav;
 
   @override
   State<LeadsContent> createState() => _LeadsContentState();
@@ -84,8 +94,8 @@ class _LeadsContentState extends State<LeadsContent> {
     String? statusFilter,
   }) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => LeadListScreen(
+      smoothPushRoute(
+        LeadListScreen(
           title: title,
           leads: _filterLeads(statusFilter),
         ),
@@ -391,7 +401,12 @@ class _LeadsContentState extends State<LeadsContent> {
                           child: InkWell(
                             onTap: () async {
                               await Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const AddLeadScreen()),
+                                smoothPushRoute(
+                                  AddLeadScreen(
+                                    userName: widget.userName,
+                                    shellNav: widget.addLeadShellNav,
+                                  ),
+                                ),
                               );
                               if (context.mounted) _loadLeads();
                             },
@@ -432,7 +447,12 @@ class _LeadsContentState extends State<LeadsContent> {
       child: InkWell(
         onTap: () async {
           await Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AddLeadScreen()),
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: widget.addLeadShellNav,
+              ),
+            ),
           );
           if (mounted) {
             _loadLeads();
@@ -464,6 +484,117 @@ class _LeadsContentState extends State<LeadsContent> {
   }
 }
 
+WalletShellNav _leadsAddLeadShellNav(NavigatorState nav, String userName) {
+  return WalletShellNav(
+    onHome: () {
+      nav.pop();
+      nav.pop();
+    },
+    onLeads: () => nav.pop(),
+    onReferral: () {
+      nav.pop();
+      Future.microtask(() {
+        nav.push(
+          smoothPushRoute(
+            ReferralScreen(
+              userName: userName,
+              shellNav: _leadsReferralShellNav(nav, userName),
+            ),
+          ),
+        );
+      });
+    },
+    onCenterPlus: () {},
+    onWallet: () {
+      nav.pop();
+      Future.microtask(() {
+        nav.push(
+          smoothPushRoute(
+            WalletScreen(
+              userName: userName,
+              shellNav: _leadsWalletShellNav(nav, userName),
+            ),
+          ),
+        );
+      });
+    },
+  );
+}
+
+WalletShellNav _leadsWalletShellNav(NavigatorState nav, String userName) {
+  return WalletShellNav(
+    onHome: () {
+      nav.pop();
+      nav.pop();
+    },
+    onLeads: () => nav.pop(),
+    onReferral: () {
+      nav.pop();
+      Future.microtask(() {
+        nav.push(
+          smoothPushRoute(
+            ReferralScreen(
+              userName: userName,
+              shellNav: _leadsReferralShellNav(nav, userName),
+            ),
+          ),
+        );
+      });
+    },
+    onCenterPlus: () {
+      nav.pop();
+      Future.microtask(() {
+        nav.push(
+          smoothPushRoute(
+            AddLeadScreen(
+              userName: userName,
+              shellNav: _leadsAddLeadShellNav(nav, userName),
+            ),
+          ),
+        );
+      });
+    },
+    onWallet: () {},
+  );
+}
+
+WalletShellNav _leadsReferralShellNav(NavigatorState nav, String userName) {
+  return WalletShellNav(
+    onHome: () {
+      nav.pop();
+      nav.pop();
+    },
+    onLeads: () => nav.pop(),
+    onReferral: () {},
+    onCenterPlus: () {
+      nav.pop();
+      Future.microtask(() {
+        nav.push(
+          smoothPushRoute(
+            AddLeadScreen(
+              userName: userName,
+              shellNav: _leadsAddLeadShellNav(nav, userName),
+            ),
+          ),
+        );
+      });
+    },
+    onWallet: () {
+      nav.pop();
+      Future.microtask(() {
+        nav.push(
+          smoothPushRoute(
+            WalletScreen(
+              userName: userName,
+              shellNav: _leadsWalletShellNav(nav, userName),
+            ),
+          ),
+        );
+      });
+    },
+  );
+}
+
 class LeadsScreen extends StatelessWidget {
   final String userName;
 
@@ -480,7 +611,9 @@ class LeadsScreen extends StatelessWidget {
             showBackButton: true,
             onBackPressed: () => Navigator.of(context).pop(),
           ),
-          const Expanded(child: LeadsContent()),
+          Expanded(
+            child: LeadsContent(userName: userName),
+          ),
           CommonBottomNav(
             currentIndex: 1,
             onHomeTap: () => Navigator.of(context).pop(),
@@ -489,31 +622,10 @@ class LeadsScreen extends StatelessWidget {
             onMyLeadsTap: () {
               final nav = Navigator.of(context);
               nav.push(
-                MaterialPageRoute(
-                  builder: (_) => WalletScreen(
+                smoothPushRoute(
+                  WalletScreen(
                     userName: userName,
-                    shellNav: WalletShellNav(
-                      onHome: () {
-                        nav.pop();
-                        nav.pop();
-                      },
-                      onLeads: () => nav.pop(),
-                      onReferral: () {
-                        nav.pop();
-                        nav.pop();
-                      },
-                      onCenterPlus: () {
-                        nav.pop();
-                        Future.microtask(() {
-                          nav.push(
-                            MaterialPageRoute(
-                              builder: (_) => AddLeadScreen(userName: userName),
-                            ),
-                          );
-                        });
-                      },
-                      onWallet: () {},
-                    ),
+                    shellNav: _leadsWalletShellNav(nav, userName),
                   ),
                 ),
               );

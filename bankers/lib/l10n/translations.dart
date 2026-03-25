@@ -52,6 +52,12 @@ Map<String, Map<String, String>> get appTranslations => {
   'msgNumberNotRegistered': {'en': 'This number is not registered', 'hi': 'यह नंबर पंजीकृत नहीं है'},
   'msgLeadAlreadyExists': {'en': 'This lead already exists in our system.', 'hi': 'यह लीड पहले से हमारे सिस्टम में मौजूद है।'},
   'msgErrorTryAgain': {'en': 'An error occurred. Please try again.', 'hi': 'एक त्रुटि हुई। कृपया पुनः प्रयास करें।'},
+  'msgFirebasePhoneSetup': {
+    'en':
+        'OTP verification setup issue. In Firebase Console add your app’s SHA-1 & SHA-256 (Project settings → Your apps), download a fresh google-services.json, then rebuild. Use Chrome as default browser and try again.',
+    'hi':
+        'OTP सत्यापन सेटअप समस्या। Firebase Console में ऐप का SHA-1 और SHA-256 जोड़ें, नया google-services.json डाउनलोड कर रीबिल्ड करें। डिफ़ॉल्ट ब्राउज़र Chrome रखकर फिर कोशिश करें।',
+  },
   'msgNetworkError': {'en': 'Network error. Please try again.', 'hi': 'नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।'},
   'msgInvalidOtp': {'en': 'Invalid OTP. Please try again.', 'hi': 'अमान्य OTP। कृपया पुनः प्रयास करें।'},
   'msgOtpResent': {'en': 'OTP resent successfully!', 'hi': 'OTP सफलतापूर्वक पुनः भेजा गया!'},
@@ -118,4 +124,18 @@ Map<String, Map<String, String>> get appTranslations => {
   'msgBankSaved': {'en': 'Bank details saved', 'hi': 'बैंक विवरण सहेजा गया'},
   'msgEnterBankName': {'en': 'Enter bank name', 'hi': 'बैंक का नाम दर्ज करें'},
   'buttonSaveBankDetails': {'en': 'Save Bank Details', 'hi': 'बैंक विवरण सहेजें'},
+  // Referral
+  'titleShareReferralLink': {'en': 'Share referral link', 'hi': 'रेफरल लिंक शेयर करें'},
+  'subtitleShareReferralLink': {
+    'en': 'Invite friends and earn rewards when they join.',
+    'hi': 'दोस्तों को आमंत्रित करें और जुड़ने पर इनाम पाएं।',
+  },
+  'buttonShareNowEarnRewards': {
+    'en': 'Share now & earn reward money',
+    'hi': 'अभी शेयर करें और इनाम कमाएं',
+  },
+  'labelOrShareReferralCode': {'en': 'Or share referral code', 'hi': 'या रेफरल कोड शेयर करें'},
+  'labelCopy': {'en': 'Copy', 'hi': 'कॉपी'},
+  'msgReferralCopied': {'en': 'Referral code copied', 'hi': 'रेफरल कोड कॉपी हो गया'},
+  'shareSubjectReferral': {'en': 'Join me on Apni Zaroorat', 'hi': 'अपनी ज़रूरत पर मेरे साथ जुड़ें'},
 };

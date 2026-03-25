@@ -25,6 +25,14 @@ class AppConstants {
   static const String keyOtpValue = 'otp_value';
   static const String keyAppLocale = 'app_locale';
   static const String keyHasSignedUpOnDevice = 'has_signed_up_on_device';
+  /// Persisted 8-char referral code (generated once per install from mobile).
+  static const String keyReferralCode = 'referral_code';
+
+  /// Deep link base; append encoded referral code.
+  static const String referralInviteBase = 'https://www.apnizaroorat.com/ref?code=';
+
+  /// Public site shown in referral WhatsApp message ([Apni Zaroorat](http://apnizaroorat.com/)).
+  static const String referralMarketingSiteUrl = 'http://apnizaroorat.com/';
 
   // Default / placeholder strings
   static const String defaultUserName = 'User';
@@ -99,10 +107,65 @@ class AppConstants {
   static const String msgInvalidIfsc = 'IFSC must be 11 characters (e.g. SBIN0001234)';
   static const String msgEnterBankNameAndIfsc = 'Enter bank name and IFSC code';
   static const String labelEdit = 'Edit';
+  static const String buttonSellNow = 'Sell Now';
+
+  /// Referral screen — use these directly so labels never show as raw l10n keys.
+  static const String referralUiTitle = 'Share referral link';
+  static const String referralUiSubtitle =
+      'Invite friends and earn rewards when they join.';
+  static const String referralUiShareButton = 'Share now & earn reward money';
+  static const String referralUiOrCode = 'Or share referral code';
+  static const String referralUiCopy = 'Copy';
+  static const String referralShareSubject = 'Join me on Apni Zaroorat';
+  static const String msgReferralCopied = 'Referral code copied';
+  static const String msgWhatsAppOpenFailed =
+      'Could not open WhatsApp. Try again or use Copy to share your code.';
+
+  /// Pre-filled WhatsApp text; [referralCode] is the user’s unique saved code.
+  static String referralWhatsAppMessage(String referralCode) {
+    return '''
+Hey! 👋
+I'm earning extra income from the $appName App 💸
+
+You can earn up to ₹1 Lakh/month by selling
+Credit Cards, Insurance, Loans & more 📈
+
+👉 No experience needed
+👉 100% mobile-based earning 📱
+
+💰 Earn up to ₹3,000+ per sale
+
+Start now 👇
+🔗 $referralMarketingSiteUrl
+
+🎟️ Referral Code: $referralCode
+
+🚀 Start your earning journey today!'''.trim();
+  }
 
   // Dashboard / Share — Apni Zaroorat service URLs
   static const String shareTitlePersonalLoan = 'Share Personal Loan';
   static const String _shareBaseUrl = 'https://www.apnizaroorat.com/services';
+
+  /// Share-sheet banner per product (`assets/images/w1.png` … `w6.png`).
+  static String? shareBannerAssetForProduct(String productName) {
+    switch (productName) {
+      case 'Personal Loan':
+        return 'assets/images/w1.png';
+      case 'Insurance':
+        return 'assets/images/w2.png';
+      case 'Business Loan':
+        return 'assets/images/w3.png';
+      case 'Home Loan':
+        return 'assets/images/w4.png';
+      case 'Vehicle Loan':
+        return 'assets/images/w5.png';
+      case 'Credit Card':
+        return 'assets/images/w6.png';
+      default:
+        return null;
+    }
+  }
 
   /// Apply URL for the selected product (Personal Loan, Home Loan, Credit Card, etc.).
   static String shareApplyLinkForProduct(String productName) {

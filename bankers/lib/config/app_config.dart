@@ -19,4 +19,5 @@ class AppConfig {
   static const String splashLogo = 'assets/icon.png';
   static const String moneyLottie = 'assets/animation/money.json';
   static const String rupeesLottie = 'assets/animation/rupees.json';
+  static const String referLottie = 'assets/animation/refer.json';
 }

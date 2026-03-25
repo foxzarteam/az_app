@@ -4,9 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../l10n/app_locale.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
+import '../utils/page_routes.dart';
+import '../utils/referral_lottie_cache.dart';
 import '../utils/user_prefs_helper.dart';
 import '../widgets/common_nav_bar.dart';
 import '../widgets/common_bottom_nav.dart';
+import '../widgets/wallet_shell_nav.dart';
 import '../widgets/drawer_menu_item.dart';
 import '../widgets/user_qr_code_widget.dart';
 import 'add_lead_screen.dart';
@@ -16,6 +19,7 @@ import 'wallet_screen.dart';
 import 'personal_details_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'mpin_set_screen.dart';
+import 'referral_screen.dart';
 
 /// Single shell: one header, one footer. Only the middle content changes with animation.
 class MainShellScreen extends StatefulWidget {
@@ -41,6 +45,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
   void initState() {
     super.initState();
     _contentStack = [widget.initialIndex];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ReferralLottieCache.warmUp();
+    });
   }
 
   int get _currentIndex => _contentStack.last;
@@ -59,7 +66,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _goBack() {
     if (_contentStack.length <= 1) return;
-    setState(() => _contentStack = _contentStack.sublist(0, _contentStack.length - 1));
+    setState(
+      () => _contentStack = _contentStack.sublist(0, _contentStack.length - 1),
+    );
   }
 
   Future<void> _loadMobileIfNeeded() async {
@@ -78,7 +87,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
       barrierLabel: '',
       barrierColor: AppTheme.overlayDark(0.5),
       transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (context, animation, secondaryAnimation) => _buildProfileDrawer(),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          _buildProfileDrawer(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
@@ -88,16 +98,19 @@ class _MainShellScreenState extends State<MainShellScreen> {
           begin: const Offset(1.0, 0.0),
           end: Offset.zero,
         ).animate(curvedAnimation);
-        final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation);
-        final scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(curvedAnimation);
+        final fadeAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(curvedAnimation);
+        final scaleAnimation = Tween<double>(
+          begin: 0.95,
+          end: 1.0,
+        ).animate(curvedAnimation);
         return FadeTransition(
           opacity: fadeAnimation,
           child: ScaleTransition(
             scale: scaleAnimation,
-            child: SlideTransition(
-              position: slideAnimation,
-              child: child,
-            ),
+            child: SlideTransition(position: slideAnimation, child: child),
           ),
         );
       },
@@ -165,7 +178,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     FutureBuilder<Map<String, String>>(
                       future: UserPrefsHelper.getUserDetails(),
                       builder: (context, snapshot) {
-                        final mobile = snapshot.data?['mobile'] ?? AppConstants.defaultMaskedMobile;
+                        final mobile =
+                            snapshot.data?['mobile'] ??
+                            AppConstants.defaultMaskedMobile;
                         return UserQrCodeWidget(
                           userName: widget.userName,
                           mobileNumber: mobile,
@@ -204,8 +219,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => PrivacyPolicyScreen(userName: widget.userName),
+                          smoothPushRoute(
+                            PrivacyPolicyScreen(userName: widget.userName),
                           ),
                         );
                       },
@@ -236,8 +251,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
                         }
 
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MPinSetScreen(
+                          smoothPushRoute(
+                            MPinSetScreen(
                               userName: userName,
                               mobileNumber: mobile,
                               launchedFromSettings: true,
@@ -255,8 +270,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => WalletScreen(
+                          smoothPushRoute(
+                            WalletScreen(
                               userName: widget.userName,
                               shellNav: _walletShellNav(),
                             ),
@@ -280,45 +295,60 @@ class _MainShellScreenState extends State<MainShellScreen> {
       case 0:
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
-          onAddLeadTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AddLeadScreen(userName: widget.userName),
-                ),
+          onAddLeadTap: () => Navigator.of(
+            context,
+          ).push(
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: _addLeadShellNav(),
               ),
+            ),
+          ),
           onWalletTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => WalletScreen(
-                    userName: widget.userName,
-                    shellNav: _walletShellNav(),
-                  ),
-                ),
+            smoothPushRoute(
+              WalletScreen(
+                userName: widget.userName,
+                shellNav: _walletShellNav(),
               ),
+            ),
+          ),
           onKycTap: () => _goTo(2),
         );
       case 1:
-        return const LeadsContent();
+        return LeadsContent(
+          userName: widget.userName,
+          addLeadShellNav: _addLeadShellNav(),
+        );
       case 2:
         return PersonalDetailsContent(
           userName: widget.userName,
-          mobileNumber: _mobileNumber.isEmpty ? AppConstants.defaultMaskedMobile : _mobileNumber,
+          mobileNumber: _mobileNumber.isEmpty
+              ? AppConstants.defaultMaskedMobile
+              : _mobileNumber,
           onSaved: () => _goTo(0),
         );
       default:
         return DashboardBody(
           onSharePersonalLoan: () => _showShareOptionsFromDashboard(),
-          onAddLeadTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AddLeadScreen(userName: widget.userName),
-                ),
+          onAddLeadTap: () => Navigator.of(
+            context,
+          ).push(
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: _addLeadShellNav(),
               ),
+            ),
+          ),
           onWalletTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => WalletScreen(
-                    userName: widget.userName,
-                    shellNav: _walletShellNav(),
-                  ),
-                ),
+            smoothPushRoute(
+              WalletScreen(
+                userName: widget.userName,
+                shellNav: _walletShellNav(),
               ),
+            ),
+          ),
           onKycTap: () => _goTo(2),
         );
     }
@@ -326,6 +356,86 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _showShareOptionsFromDashboard() {
     DashboardScreen.showShareOptions(context);
+  }
+
+  /// Bottom nav on [AddLeadScreen] (center + = no-op).
+  WalletShellNav _addLeadShellNav() {
+    return WalletShellNav(
+      onHome: () {
+        Navigator.of(context).pop();
+        _goTo(0);
+      },
+      onLeads: () {
+        Navigator.of(context).pop();
+        _goTo(1);
+      },
+      onReferral: () {
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              ReferralScreen(userName: name, shellNav: _referralShellNav()),
+            ),
+          );
+        });
+      },
+      onCenterPlus: () {},
+      onWallet: () {
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              WalletScreen(userName: name, shellNav: _walletShellNav()),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  /// Bottom nav on [ReferralScreen] (Referral tab = no-op).
+  WalletShellNav _referralShellNav() {
+    return WalletShellNav(
+      onHome: () {
+        Navigator.of(context).pop();
+        _goTo(0);
+      },
+      onLeads: () {
+        Navigator.of(context).pop();
+        _goTo(1);
+      },
+      onReferral: () {},
+      onCenterPlus: () {
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              AddLeadScreen(userName: name, shellNav: _addLeadShellNav()),
+            ),
+          );
+        });
+      },
+      onWallet: () {
+        Navigator.of(context).pop();
+        Navigator.of(context).push(
+          smoothPushRoute(
+            WalletScreen(
+              userName: widget.userName,
+              shellNav: _walletShellNav(),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   WalletShellNav _walletShellNav() {
@@ -339,8 +449,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
         _goTo(1);
       },
       onReferral: () {
-        Navigator.of(context).pop();
-        _goTo(2);
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              ReferralScreen(userName: name, shellNav: _referralShellNav()),
+            ),
+          );
+        });
       },
       onCenterPlus: () {
         final nav = Navigator.of(context);
@@ -349,8 +468,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
         Future.microtask(() {
           if (!mounted) return;
           nav.push(
-            MaterialPageRoute(
-              builder: (_) => AddLeadScreen(userName: name),
+            smoothPushRoute(
+              AddLeadScreen(userName: name, shellNav: _addLeadShellNav()),
             ),
           );
         });
@@ -362,7 +481,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _currentIndex == 0 ? AppTheme.surfaceWhite : AppTheme.mainBackground,
+      resizeToAvoidBottomInset: false,
+      backgroundColor: _currentIndex == 0
+          ? AppTheme.surfaceWhite
+          : AppTheme.mainBackground,
       body: Column(
         children: [
           CommonNavBar(
@@ -380,16 +502,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
               transitionBuilder: (Widget child, Animation<double> animation) {
                 const begin = Offset(0.15, 0.0);
                 const end = Offset.zero;
-                final tween = Tween(begin: begin, end: end).chain(
-                  CurveTween(curve: Curves.easeOutCubic),
-                );
-                final fade = Tween<double>(begin: 0.0, end: 1.0).animate(animation);
+                final tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: Curves.easeOutCubic));
+                final fade = Tween<double>(
+                  begin: 0.0,
+                  end: 1.0,
+                ).animate(animation);
                 return SlideTransition(
                   position: animation.drive(tween),
-                  child: FadeTransition(
-                    opacity: fade,
-                    child: child,
-                  ),
+                  child: FadeTransition(opacity: fade, child: child),
                 );
               },
               child: KeyedSubtree(
@@ -403,19 +526,29 @@ class _MainShellScreenState extends State<MainShellScreen> {
             onHomeTap: () => _goTo(0),
             onLeadsTap: () => _goTo(1),
             onCenterTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => AddLeadScreen(userName: widget.userName),
-                  ),
+              smoothPushRoute(
+                AddLeadScreen(
+                  userName: widget.userName,
+                  shellNav: _addLeadShellNav(),
                 ),
-            onReferralTap: null,
+              ),
+            ),
+            onReferralTap: () => Navigator.of(context).push(
+              smoothPushRoute(
+                ReferralScreen(
+                  userName: widget.userName,
+                  shellNav: _referralShellNav(),
+                ),
+              ),
+            ),
             onMyLeadsTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => WalletScreen(
-                      userName: widget.userName,
-                      shellNav: _walletShellNav(),
-                    ),
-                  ),
+              smoothPushRoute(
+                WalletScreen(
+                  userName: widget.userName,
+                  shellNav: _walletShellNav(),
                 ),
+              ),
+            ),
           ),
         ],
       ),

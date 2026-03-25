@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
 import '../l10n/app_locale.dart';
 import '../services/api_service.dart';
 import '../utils/constants.dart';
 import '../utils/user_prefs_helper.dart';
 import '../utils/page_routes.dart';
+import '../utils/product_share.dart';
 import '../theme/app_theme.dart';
 import '../widgets/user_qr_code_widget.dart';
+import '../widgets/wallet_shell_nav.dart';
 import '../config/app_config.dart';
 import '../widgets/carousel_banner.dart';
 import '../widgets/common_nav_bar.dart';
@@ -18,6 +19,7 @@ import 'leads_screen.dart';
 import 'wallet_screen.dart';
 import 'personal_details_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'referral_screen.dart';
 
 String walletNumToDisplay(dynamic v) {
   if (v == null) return '0.00';
@@ -38,21 +40,9 @@ class DashboardScreen extends StatefulWidget {
   }
 
   /// Opens share sheet with product-specific template (e.g. Personal Loan, Home Loan). No navigation to lead page.
+  /// Each product uses its banner (`w1.png`–`w6.png`) plus text when the asset exists.
   static void showShareForProduct(BuildContext context, String productTitle) {
-    () async {
-      try {
-        await Share.share(
-          AppConstants.shareMessageForProduct(productTitle),
-          subject: AppConstants.shareSubjectForProduct(productTitle),
-        );
-      } catch (_) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.t('msgErrorTryAgain'))),
-          );
-        }
-      }
-    }();
+    ProductShare.shareProduct(context, productTitle);
   }
 
   @override
@@ -148,27 +138,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DashboardScreen.showShareOptions(context);
   }
 
+  WalletShellNav _dashboardReferralShellNav() {
+    return WalletShellNav(
+      onHome: () => Navigator.of(context).pop(),
+      onLeads: () {
+        Navigator.of(context).pop();
+        Navigator.of(context).push(
+          smoothPushRoute(
+            LeadsScreen(userName: widget.userName),
+          ),
+        );
+      },
+      onReferral: () {},
+      onCenterPlus: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: _dashboardAddLeadShellNav(),
+              ),
+            ),
+          );
+        });
+      },
+      onWallet: () {
+        Navigator.of(context).pop();
+        Navigator.of(context).push(
+          smoothPushRoute(
+            WalletScreen(
+              userName: widget.userName,
+              shellNav: _dashboardWalletShellNav(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   WalletShellNav _dashboardWalletShellNav() {
     return WalletShellNav(
       onHome: () => Navigator.of(context).pop(),
       onLeads: () {
         Navigator.of(context).pop();
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => LeadsScreen(userName: widget.userName),
+          smoothPushRoute(
+            LeadsScreen(userName: widget.userName),
           ),
         );
       },
       onReferral: () {
-        Navigator.of(context).pop();
-        UserPrefsHelper.getUserDetails().then((details) {
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
           if (!mounted) return;
-          final mobile = details['mobile'] ?? '';
-          Navigator.of(context).push(
-            slideFromRightRoute(
-              PersonalDetailsScreen(
-                userName: widget.userName,
-                mobileNumber: mobile,
+          nav.push(
+            smoothPushRoute(
+              ReferralScreen(
+                userName: name,
+                shellNav: _dashboardReferralShellNav(),
               ),
             ),
           );
@@ -180,13 +212,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Future.microtask(() {
           if (!mounted) return;
           nav.push(
-            MaterialPageRoute(
-              builder: (_) => AddLeadScreen(userName: widget.userName),
+            smoothPushRoute(
+              AddLeadScreen(
+                userName: widget.userName,
+                shellNav: _dashboardAddLeadShellNav(),
+              ),
             ),
           );
         });
       },
       onWallet: () {},
+    );
+  }
+
+  WalletShellNav _dashboardAddLeadShellNav() {
+    return WalletShellNav(
+      onHome: () => Navigator.of(context).pop(),
+      onLeads: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(LeadsScreen(userName: widget.userName)),
+          );
+        });
+      },
+      onReferral: () {
+        final nav = Navigator.of(context);
+        final name = widget.userName;
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              ReferralScreen(
+                userName: name,
+                shellNav: _dashboardReferralShellNav(),
+              ),
+            ),
+          );
+        });
+      },
+      onCenterPlus: () {},
+      onWallet: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(
+            smoothPushRoute(
+              WalletScreen(
+                userName: widget.userName,
+                shellNav: _dashboardWalletShellNav(),
+              ),
+            ),
+          );
+        });
+      },
     );
   }
 
@@ -291,8 +374,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => PrivacyPolicyScreen(userName: widget.userName),
+                          smoothPushRoute(
+                            PrivacyPolicyScreen(userName: widget.userName),
                           ),
                         );
                       },
@@ -306,8 +389,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => WalletScreen(
+                          smoothPushRoute(
+                            WalletScreen(
                               userName: widget.userName,
                               shellNav: _dashboardWalletShellNav(),
                             ),
@@ -329,6 +412,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppTheme.white,
       body: Column(
         children: [
@@ -341,13 +425,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: _DashboardBodyBuilder(
               onShare: _showShareOptions,
               onAddLeadTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => AddLeadScreen(userName: widget.userName),
+                    smoothPushRoute(
+                      AddLeadScreen(
+                        userName: widget.userName,
+                        shellNav: _dashboardAddLeadShellNav(),
+                      ),
                     ),
                   ),
               onWalletTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => WalletScreen(
+                    smoothPushRoute(
+                      WalletScreen(
                         userName: widget.userName,
                         shellNav: _dashboardWalletShellNav(),
                       ),
@@ -367,8 +454,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentIndex: 0,
         onLeadsTap: () {},
         onMyLeadsTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => WalletScreen(
+              smoothPushRoute(
+                WalletScreen(
                   userName: widget.userName,
                   shellNav: _dashboardWalletShellNav(),
                 ),

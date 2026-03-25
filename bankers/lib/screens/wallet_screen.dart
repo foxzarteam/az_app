@@ -5,30 +5,15 @@ import '../l10n/app_locale.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
+import '../utils/page_routes.dart';
 import '../utils/user_prefs_helper.dart';
 import '../utils/validators.dart';
 import '../widgets/common_bottom_nav.dart';
 import '../widgets/common_nav_bar.dart';
+import '../widgets/wallet_shell_nav.dart';
 import 'add_lead_screen.dart';
-
-/// Bottom-bar actions when [WalletScreen] is shown on top of another navigator
-/// (e.g. [MainShellScreen]) so tabs can pop the wallet and switch correctly.
-class WalletShellNav {
-  const WalletShellNav({
-    required this.onHome,
-    required this.onLeads,
-    required this.onReferral,
-    required this.onCenterPlus,
-    required this.onWallet,
-  });
-
-  final VoidCallback onHome;
-  final VoidCallback onLeads;
-  final VoidCallback onReferral;
-  final VoidCallback onCenterPlus;
-  /// Wallet tab (already on this screen).
-  final VoidCallback onWallet;
-}
+import 'leads_screen.dart';
+import 'referral_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   final String? userName;
@@ -168,6 +153,38 @@ class _WalletScreenState extends State<WalletScreen> {
     super.dispose();
   }
 
+  WalletShellNav _walletStandaloneAddLeadNav() {
+    final name = widget.userName ?? AppConstants.defaultUserName;
+    return WalletShellNav(
+      onHome: () => Navigator.of(context).pop(),
+      onLeads: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(smoothPushRoute(LeadsScreen(userName: name)));
+        });
+      },
+      onReferral: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(smoothPushRoute(ReferralScreen(userName: name)));
+        });
+      },
+      onCenterPlus: () {},
+      onWallet: () {
+        final nav = Navigator.of(context);
+        nav.pop();
+        Future.microtask(() {
+          if (!mounted) return;
+          nav.push(smoothPushRoute(WalletScreen(userName: name)));
+        });
+      },
+    );
+  }
+
   void _bottomNavHome() {
     if (widget.shellNav != null) {
       widget.shellNav!.onHome();
@@ -188,7 +205,11 @@ class _WalletScreenState extends State<WalletScreen> {
     if (widget.shellNav != null) {
       widget.shellNav!.onReferral();
     } else {
-      Navigator.of(context).pop();
+      Navigator.of(context).push(
+        smoothPushRoute(
+          ReferralScreen(userName: widget.userName),
+        ),
+      );
     }
   }
 
@@ -202,8 +223,11 @@ class _WalletScreenState extends State<WalletScreen> {
       Future.microtask(() {
         if (!mounted) return;
         nav.push(
-          MaterialPageRoute(
-            builder: (_) => AddLeadScreen(userName: name),
+          smoothPushRoute(
+            AddLeadScreen(
+              userName: name,
+              shellNav: _walletStandaloneAddLeadNav(),
+            ),
           ),
         );
       });
