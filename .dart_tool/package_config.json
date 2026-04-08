@@ -176,12 +176,6 @@
       "languageVersion": "3.8"
     },
     {
-      "name": "flutter_driver",
-      "rootUri": "file:///D:/flutter/packages/flutter_driver",
-      "packageUri": "lib/",
-      "languageVersion": "3.8"
-    },
-    {
       "name": "flutter_launcher_icons",
       "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_launcher_icons-0.14.4",
       "packageUri": "lib/",
@@ -202,12 +196,6 @@
     {
       "name": "flutter_web_plugins",
       "rootUri": "file:///D:/flutter/packages/flutter_web_plugins",
-      "packageUri": "lib/",
-      "languageVersion": "3.8"
-    },
-    {
-      "name": "fuchsia_remote_debug_protocol",
-      "rootUri": "file:///D:/flutter/packages/fuchsia_remote_debug_protocol",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
@@ -246,12 +234,6 @@
       "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/image-4.8.0",
       "packageUri": "lib/",
       "languageVersion": "3.0"
-    },
-    {
-      "name": "integration_test",
-      "rootUri": "file:///D:/flutter/packages/integration_test",
-      "packageUri": "lib/",
-      "languageVersion": "3.8"
     },
     {
       "name": "json_annotation",
@@ -410,12 +392,6 @@
       "languageVersion": "3.0"
     },
     {
-      "name": "process",
-      "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/process-5.0.5",
-      "packageUri": "lib/",
-      "languageVersion": "3.5"
-    },
-    {
       "name": "provider",
       "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/provider-6.1.5+1",
       "packageUri": "lib/",
@@ -524,12 +500,6 @@
       "languageVersion": "3.1"
     },
     {
-      "name": "sync_http",
-      "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/sync_http-0.3.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "term_glyph",
       "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/term_glyph-1.2.2",
       "packageUri": "lib/",
@@ -618,12 +588,6 @@
       "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/web-1.1.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
-    },
-    {
-      "name": "webdriver",
-      "rootUri": "file:///C:/Users/User/AppData/Local/Pub/Cache/hosted/pub.dev/webdriver-3.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.1"
     },
     {
       "name": "widgets_to_image",

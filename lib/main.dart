@@ -1,19 +1,22 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'l10n/app_locale.dart';
-import 'screens/splash_screen.dart';
-import 'theme/app_theme.dart';
-import 'widgets/network_guard.dart';
 
-void main() async {
+import 'config/app_assets.dart';
+import 'core/l10n/app_locale.dart';
+import 'core/providers/app_providers.dart';
+import 'core/theme/app_theme.dart';
+import 'core/widgets/network_guard.dart';
+import 'features/splash/splash_screen.dart';
+import 'services/api_client.dart';
+import 'services/api_service.dart';
+import 'services/firebase_bootstrap.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = kDebugMode;
-  // Ensure system UI (status/navigation bars) stay visible to avoid layout jumps
-  // when platform sheets (e.g., share sheet) appear/disappear.
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
     overlays: const [SystemUiOverlay.top, SystemUiOverlay.bottom],
@@ -27,104 +30,42 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const AppBootstrapper());
+  // Warm the splash animation in [sharedLottieCache] so the first Flutter frame
+  // does not wait on asset read + JSON parse (that delay looked like a late Lottie).
+  await AssetLottie(AppAssets.rupeesLottie).load();
+  // Do not await: phone auth still calls [FirebaseBootstrap.ensureInitialized] before use.
+  unawaited(FirebaseBootstrap.ensureInitialized());
+  runAppWithApi(ApiService.instance);
 }
 
-class AppBootstrapper extends StatefulWidget {
-  const AppBootstrapper({super.key});
-
-  @override
-  State<AppBootstrapper> createState() => _AppBootstrapperState();
+void runAppWithApi(ApiClient api) {
+  runApp(
+    MultiProvider(
+      providers: createAppProviders(api),
+      child: const AzMaterialApp(),
+    ),
+  );
 }
 
-class _AppBootstrapperState extends State<AppBootstrapper> {
-  late final Future<void> _bootstrapFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _bootstrapFuture = _bootstrap();
-  }
-
-  Future<void> _bootstrap() async {
-    try {
-      await Firebase.initializeApp().timeout(const Duration(seconds: 4));
-    } catch (_) {
-    }
-  }
+class AzMaterialApp extends StatelessWidget {
+  const AzMaterialApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: _bootstrapFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const _StartupLoadingScreen();
-        }
-        return const MyApp();
-      },
-    );
-  }
-}
-
-class _StartupLoadingScreen extends StatelessWidget {
-  const _StartupLoadingScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: AppTheme.primaryBlueDark,
-        body: Center(
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.8,
-              color: Colors.white,
-            ),
+    return Consumer<AppLocale>(
+      builder: (_, appLocale, _) {
+        // NetworkGuard must wrap MaterialApp, not MaterialApp.builder's child — when
+        // [child] is null the route (splash) never mounts and only the native blue window shows.
+        return NetworkGuard(
+          child: MaterialApp(
+            title: appLocale.t('appName'),
+            debugShowCheckedModeBanner: false,
+            locale: Locale(appLocale.locale),
+            theme: AppTheme.materialTheme(),
+            home: const SplashScreen(),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AppLocale>(
-      create: (_) => AppLocale(),
-      child: Consumer<AppLocale>(
-        builder: (_, appLocale, child) {
-          final inter = GoogleFonts.interTextTheme();
-          return NetworkGuard(
-            child: MaterialApp(
-              title: appLocale.t('appName'),
-              debugShowCheckedModeBanner: false,
-              locale: Locale(appLocale.locale),
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: AppTheme.primaryBlue,
-                  primary: AppTheme.primaryBlue,
-                  secondary: AppTheme.accentOrange,
-                ),
-                useMaterial3: true,
-                scaffoldBackgroundColor: AppTheme.mainBackground,
-                fontFamily: GoogleFonts.inter().fontFamily,
-                textTheme: inter.apply(
-                  bodyColor: AppTheme.primaryText,
-                  displayColor: AppTheme.primaryText,
-                ),
-              ),
-              home: const SplashScreen(),
-            ),
-          );
-        },
-      ),
+        );
+      },
     );
   }
 }

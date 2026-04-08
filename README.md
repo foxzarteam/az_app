@@ -29,22 +29,6 @@ apnizaroorat/
    flutter pub get && flutter run
    ```
 
-## Integration tests (seeded)
-
-- File: `integration_test/app_smoke_test.dart`
-- File: `integration_test/high_value_flows_test.dart`
-  - signup/mobile validation flow
-  - leads load + list render (stub API)
-  - wallet payment method add flow (stub API)
-- Run on connected device/emulator:
-  ```bash
-  flutter test integration_test
-  ```
-- For full suite:
-  ```bash
-  flutter test
-  ```
-
 ## Getting Started
 
 This project is a starting point for a Flutter application.
