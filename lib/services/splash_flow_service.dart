@@ -28,7 +28,7 @@ class SplashFlowService {
   static const Duration _syncTimeout = Duration(milliseconds: 900);
 
   Future<SplashRouteResult> resolve(SharedPreferences prefs) async {
-    final mobileNumber = prefs.getString(AppConstants.keyMobileNumber);
+    final mobileNumber = prefs.getString(AppConstants.keyMobileNumber)?.trim();
     final hasSignedUpOnDevice =
         prefs.getBool(AppConstants.keyHasSignedUpOnDevice) ?? false;
 
@@ -39,7 +39,20 @@ class SplashFlowService {
       return const SplashRouteMpinLogin();
     }
 
-    if (mobileNumber != null && mobileNumber.isNotEmpty) {
+    final hasMobile = mobileNumber != null && mobileNumber.isNotEmpty;
+
+    // No mobile → main shell only if device already completed signup; else signup (no API wait).
+    if (!hasMobile) {
+      if (hasSignedUpOnDevice) {
+        final userName =
+            prefs.getString(AppConstants.keyUserName) ??
+                AppConstants.defaultUserName;
+        return SplashRouteMainShell(userName);
+      }
+      return const SplashRouteSignup();
+    }
+
+    if (hasMobile) {
       Map<String, dynamic>? dbUser;
       try {
         dbUser = await _users
@@ -71,3 +84,4 @@ class SplashFlowService {
     return const SplashRouteSignup();
   }
 }
+

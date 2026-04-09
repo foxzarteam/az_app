@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Sync with lib/core/theme/app_theme.dart primaryBlueDark -->
+    <!-- Sync with AppTheme.primaryBlueDark + flutter_native_splash color -->
     <color name="splash_background">#1A1BC7</color>
 </resources>
