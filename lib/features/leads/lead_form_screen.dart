@@ -7,8 +7,10 @@ import 'package:provider/provider.dart';
 import '../../core/l10n/app_locale.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/constants.dart';
+import '../../core/utils/service_display.dart';
 import '../../core/utils/user_prefs_helper.dart';
 import '../../core/widgets/common_nav_bar.dart';
+import '../home/services_controller.dart';
 import 'lead_controller.dart';
 
 /// Lead form: Apply Now / Product Details tabs + form. Design consistent with app theme.
@@ -25,17 +27,16 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   final _mobileController = TextEditingController();
   final _fullNameController = TextEditingController();
   bool _disclaimerChecked = false;
-  String _selectedCategory = 'personal_loan';
+  String? _selectedCategory;
   bool _isSubmitting = false;
 
-  final List<Map<String, String>> _categories = [
-    {'value': 'personal_loan', 'label': 'Personal Loan'},
-    {'value': 'home_loan', 'label': 'Home Loan'},
-    {'value': 'business_loan', 'label': 'Business Loan'},
-    {'value': 'credit_card', 'label': 'Credit Card'},
-    {'value': 'insurance', 'label': 'Insurance'},
-    {'value': 'vehicle_loan', 'label': 'Vehicle Loan'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ServicesController>().onScreenVisible();
+    });
+  }
 
   @override
   void dispose() {
@@ -340,6 +341,9 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
   }
 
   Widget _buildCategoryDropdown() {
+    final ctrl = context.watch<ServicesController>();
+    final options = serviceCategoryOptions(ctrl.items);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -352,35 +356,81 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.mainBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor),
-          ),
-          child: DropdownButtonFormField<String>(
-            initialValue: _selectedCategory,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
+        if (ctrl.loading && options.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: AppTheme.mainBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderColor),
             ),
-            dropdownColor: Colors.white,
-            style: GoogleFonts.inter(fontSize: 15, color: AppTheme.primaryText),
-            items: _categories.map((category) {
-              return DropdownMenuItem<String>(
-                value: category['value'],
-                child: Text(category['label']!),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) setState(() => _selectedCategory = value);
-            },
+            child: const Center(
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          )
+        else if (options.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppTheme.mainBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: Text(
+              'No services available',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.secondaryText,
+              ),
+            ),
+          )
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.mainBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: DropdownButtonFormField<String>(
+              value: _resolvedCategoryValue(options),
+              decoration: const InputDecoration(
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              dropdownColor: Colors.white,
+              style: GoogleFonts.inter(fontSize: 15, color: AppTheme.primaryText),
+              items: options
+                  .map(
+                    (o) => DropdownMenuItem<String>(
+                      value: o.value,
+                      child: Text(o.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _selectedCategory = value);
+              },
+            ),
           ),
-        ),
       ],
     );
+  }
+
+  String _resolvedCategoryValue(List<({String value, String label})> options) {
+    if (options.isEmpty) return '';
+    final values = options.map((o) => o.value).toSet();
+    if (_selectedCategory != null && values.contains(_selectedCategory)) {
+      return _selectedCategory!;
+    }
+    return options.first.value;
   }
 
   Future<void> _submitForm() async {
@@ -397,6 +447,23 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
       );
       return;
     }
+
+    final categoryOptions =
+        serviceCategoryOptions(context.read<ServicesController>().items);
+    if (categoryOptions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No service category available. Pull to refresh on home and try again.',
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+      return;
+    }
+
+    final category = _resolvedCategoryValue(categoryOptions);
 
     setState(() {
       _isSubmitting = true;
@@ -419,7 +486,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         email: null,
         pincode: null,
         requiredAmount: null,
-        category: _selectedCategory,
+        category: category,
         userId: userId,
       );
 
@@ -437,7 +504,7 @@ class _LeadFormScreenState extends State<LeadFormScreen> {
         _fullNameController.clear();
         setState(() {
           _disclaimerChecked = false;
-          _selectedCategory = 'personal_loan';
+          _selectedCategory = categoryOptions.first.value;
         });
       } else {
         final errorMsg = result.message?.trim().isNotEmpty == true

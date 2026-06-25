@@ -18,19 +18,21 @@ class ApiService implements ApiClient {
   static const _jsonHeaders = {'Content-Type': 'application/json'};
 
   Future<http.Response?> _sendWithRetry(
-    Future<http.Response> Function() request,
-  ) async {
+    Future<http.Response> Function() request, {
+    Duration timeout = _requestTimeout,
+    int maxRetries = _maxRetries,
+  }) async {
     Object? lastError;
-    for (var attempt = 0; attempt <= _maxRetries; attempt++) {
+    for (var attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        final res = await request().timeout(_requestTimeout);
+        final res = await request().timeout(timeout);
         if (!_retryableStatusCodes.contains(res.statusCode) ||
-            attempt == _maxRetries) {
+            attempt == maxRetries) {
           return res;
         }
       } catch (e) {
         lastError = e;
-        if (attempt == _maxRetries) return null;
+        if (attempt == maxRetries) return null;
       }
       final backoffMs = 250 * (attempt + 1);
       await Future.delayed(Duration(milliseconds: backoffMs));
@@ -48,10 +50,16 @@ class ApiService implements ApiClient {
   }
 
   Future<Map<String, dynamic>?> _parseMapResponse(
-    Future<http.Response> Function() request,
-  ) async {
+    Future<http.Response> Function() request, {
+    Duration timeout = _requestTimeout,
+    int maxRetries = _maxRetries,
+  }) async {
     try {
-      final res = await _sendWithRetry(request);
+      final res = await _sendWithRetry(
+        request,
+        timeout: timeout,
+        maxRetries: maxRetries,
+      );
       if (res == null) return null;
       if (res.statusCode >= 400) return null;
       if (res.body.trim().isEmpty) return null;
@@ -62,9 +70,15 @@ class ApiService implements ApiClient {
   }
 
   @override
-  Future<Map<String, dynamic>?> getJson(String path) {
+  Future<Map<String, dynamic>?> getJson(
+    String path, {
+    Duration? timeout,
+    int? maxRetries,
+  }) {
     return _parseMapResponse(
       () => http.get(Uri.parse('$_base$path')),
+      timeout: timeout ?? _requestTimeout,
+      maxRetries: maxRetries ?? _maxRetries,
     );
   }
 

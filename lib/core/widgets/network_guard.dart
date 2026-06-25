@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../connectivity/app_connectivity.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../../services/network_reachability_service.dart';
 
-/// Wraps the whole app so offline UI stays on top after any navigation.
+/// Full-screen offline blocker when there is no real internet.
 class NetworkGuard extends StatefulWidget {
   const NetworkGuard({super.key, required this.child});
 
@@ -16,97 +19,94 @@ class NetworkGuard extends StatefulWidget {
   State<NetworkGuard> createState() => _NetworkGuardState();
 }
 
-class _NetworkGuardState extends State<NetworkGuard> {
-  /// Wait this long before showing the offline UI so startup / flaky checks
-  /// do not flash the dialog when the connection is actually fine.
-  static const Duration _offlineShowDelay = Duration(milliseconds: 1200);
-  static const Duration _onlineStabilityDelay = Duration(milliseconds: 1400);
-  static const Duration _offlinePopupCooldown = Duration(seconds: 20);
-  static const int _offlineFailureThreshold = 2;
+class _NetworkGuardState extends State<NetworkGuard>
+    with WidgetsBindingObserver {
+  /// Brief debounce only for “Wi‑Fi on but no internet” to avoid one flaky ping flash.
+  static const Duration _probeFailDebounce = Duration(milliseconds: 350);
+
+  /// Wait before hiding modal after internet is back (reduces flicker).
+  static const Duration _onlineHideDelay = Duration(milliseconds: 600);
+
+  static const Duration _periodicCheckInterval = Duration(seconds: 4);
 
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _subscription;
+  Timer? _periodicTimer;
+  Timer? _offlineDebounceTimer;
+  Timer? _onlineHideTimer;
+  int _offlineDebounceGen = 0;
+  int _checkSeq = 0;
 
   bool _isConnected = true;
   bool _isChecking = false;
-  int _checkSeq = 0;
+  bool _foreground = true;
 
-  Timer? _offlineDebounceTimer;
-  int _offlineDebounceGen = 0;
-  int _consecutiveOfflineFailures = 0;
-  DateTime? _lastOfflineShownAt;
-  Timer? _onlineStabilityTimer;
+  AppConnectivity? _appConnectivity;
 
   @override
   void initState() {
     super.initState();
-    // Defer checks until after first frames so splash / text can paint without ping work.
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(
-        Future.delayed(const Duration(milliseconds: 900), () {
-          if (!mounted) return;
-          unawaited(_connectivity.checkConnectivity().then(_applyConnectivity));
-          _subscription ??=
-              _connectivity.onConnectivityChanged.listen(_applyConnectivity);
-        }),
-      );
+      unawaited(_bootstrapMonitoring());
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _appConnectivity ??= context.read<AppConnectivity>();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) {
+      unawaited(_runConnectivityCheck());
+      _startPeriodicCheck();
+    } else {
+      _stopPeriodicCheck();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _offlineDebounceTimer?.cancel();
-    _onlineStabilityTimer?.cancel();
+    _onlineHideTimer?.cancel();
+    _stopPeriodicCheck();
     _subscription?.cancel();
     super.dispose();
   }
 
-  void _scheduleOfflineOverlay() {
-    if (!_isConnected) return;
-    if (_consecutiveOfflineFailures < _offlineFailureThreshold) return;
+  Future<void> _bootstrapMonitoring() async {
+    if (!mounted) return;
+    await _runConnectivityCheck();
+    _subscription ??=
+        _connectivity.onConnectivityChanged.listen((results) {
+      unawaited(_applyConnectivity(results));
+    });
+    _startPeriodicCheck();
+  }
 
-    final now = DateTime.now();
-    final lastShown = _lastOfflineShownAt;
-    if (lastShown != null &&
-        now.difference(lastShown) < _offlinePopupCooldown) {
-      return;
-    }
-
-    _onlineStabilityTimer?.cancel();
-    _offlineDebounceTimer?.cancel();
-    final gen = ++_offlineDebounceGen;
-    _offlineDebounceTimer = Timer(_offlineShowDelay, () {
-      _offlineDebounceTimer = null;
-      if (!mounted) return;
-      if (gen != _offlineDebounceGen) return;
-      setState(() {
-        _isConnected = false;
-        _isChecking = false;
-      });
-      _lastOfflineShownAt = DateTime.now();
+  void _startPeriodicCheck() {
+    if (!_foreground) return;
+    _periodicTimer?.cancel();
+    _periodicTimer = Timer.periodic(_periodicCheckInterval, (_) {
+      if (!_foreground || !mounted) return;
+      unawaited(_runConnectivityCheck());
     });
   }
 
-  void _markPotentiallyOnline() {
-    _onlineStabilityTimer?.cancel();
-    _onlineStabilityTimer = Timer(_onlineStabilityDelay, () {
-      if (!mounted) return;
-      _cancelOfflineOverlaySchedule();
-    });
+  void _stopPeriodicCheck() {
+    _periodicTimer?.cancel();
+    _periodicTimer = null;
   }
 
-  void _cancelOfflineOverlaySchedule({bool updateUi = true}) {
-    _offlineDebounceTimer?.cancel();
-    _onlineStabilityTimer?.cancel();
-    _offlineDebounceTimer = null;
-    _offlineDebounceGen++;
-    _consecutiveOfflineFailures = 0;
-    if (updateUi && mounted) {
-      setState(() {
-        _isConnected = true;
-        _isChecking = false;
-      });
-    }
+  Future<void> _runConnectivityCheck() async {
+    final results = await _connectivity.checkConnectivity();
+    if (!mounted) return;
+    await _applyConnectivity(results);
   }
 
   bool _isLinkDown(List<ConnectivityResult> results) {
@@ -114,31 +114,72 @@ class _NetworkGuardState extends State<NetworkGuard> {
     return results.every((r) => r == ConnectivityResult.none);
   }
 
-  /// Link down / ping fail → debounced offline UI. Link up + ping ok → online immediately.
+  void _showOfflineNow() {
+    if (!_isConnected) return;
+    _onlineHideTimer?.cancel();
+    _offlineDebounceTimer?.cancel();
+    _offlineDebounceGen++;
+    if (!mounted) return;
+    setState(() {
+      _isConnected = false;
+      _isChecking = false;
+    });
+    _appConnectivity?.reportOffline();
+  }
+
+  void _scheduleOfflineAfterProbeFail() {
+    if (!_isConnected) return;
+    _onlineHideTimer?.cancel();
+    _offlineDebounceTimer?.cancel();
+    final gen = ++_offlineDebounceGen;
+    _offlineDebounceTimer = Timer(_probeFailDebounce, () {
+      _offlineDebounceTimer = null;
+      if (!mounted || gen != _offlineDebounceGen) return;
+      _showOfflineNow();
+    });
+  }
+
+  void _scheduleOnlineHide() {
+    _offlineDebounceTimer?.cancel();
+    _offlineDebounceGen++;
+    _onlineHideTimer?.cancel();
+    _onlineHideTimer = Timer(_onlineHideDelay, () {
+      _onlineHideTimer = null;
+      if (!mounted) return;
+      setState(() {
+        _isConnected = true;
+        _isChecking = false;
+      });
+      _appConnectivity?.reportOnline();
+    });
+  }
+
   Future<void> _applyConnectivity(List<ConnectivityResult> results) async {
     final seq = ++_checkSeq;
 
     if (_isLinkDown(results)) {
-      if (mounted) setState(() => _isChecking = false);
-      _consecutiveOfflineFailures++;
-      _scheduleOfflineOverlay();
+      _showOfflineNow();
       return;
     }
 
-    if (mounted) {
-      setState(() => _isChecking = true);
-    }
+    if (mounted) setState(() => _isChecking = true);
 
     final hasInternet =
         await NetworkReachabilityService.instance.hasInternet();
     if (!mounted || seq != _checkSeq) return;
 
     if (hasInternet) {
-      _markPotentiallyOnline();
+      if (!_isConnected) {
+        _scheduleOnlineHide();
+      } else {
+        if (mounted) setState(() => _isChecking = false);
+      }
     } else {
-      if (mounted) setState(() => _isChecking = false);
-      _consecutiveOfflineFailures++;
-      _scheduleOfflineOverlay();
+      if (_isConnected) {
+        _scheduleOfflineAfterProbeFail();
+      } else if (mounted) {
+        setState(() => _isChecking = false);
+      }
     }
   }
 
@@ -150,9 +191,7 @@ class _NetworkGuardState extends State<NetworkGuard> {
     if (!mounted || seq != _checkSeq) return;
 
     if (_isLinkDown(results)) {
-      if (mounted) setState(() => _isChecking = false);
-      _consecutiveOfflineFailures++;
-      _scheduleOfflineOverlay();
+      _showOfflineNow();
       return;
     }
 
@@ -161,22 +200,27 @@ class _NetworkGuardState extends State<NetworkGuard> {
     if (!mounted || seq != _checkSeq) return;
 
     if (hasInternet) {
-      _markPotentiallyOnline();
+      _offlineDebounceTimer?.cancel();
+      _offlineDebounceGen++;
+      _onlineHideTimer?.cancel();
+      if (mounted) {
+        setState(() {
+          _isConnected = true;
+          _isChecking = false;
+        });
+      }
+      _appConnectivity?.reportOnline();
     } else {
-      if (mounted) setState(() => _isChecking = false);
-      _consecutiveOfflineFailures++;
-      _scheduleOfflineOverlay();
+      _showOfflineNow();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Above [MaterialApp], so no ambient [Directionality] yet — [Stack] defaults need it.
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Stack(
         fit: StackFit.expand,
-        alignment: Alignment.topLeft,
         children: [
           PopScope(
             canPop: _isConnected,
@@ -204,7 +248,6 @@ class _OfflineBlocker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // [NetworkGuard] sits above [MaterialApp], so no inherited app [Theme] here.
     final overlayTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -219,7 +262,6 @@ class _OfflineBlocker extends StatelessWidget {
         type: MaterialType.transparency,
         child: Stack(
           fit: StackFit.expand,
-          alignment: Alignment.center,
           children: [
             const ModalBarrier(
               dismissible: false,

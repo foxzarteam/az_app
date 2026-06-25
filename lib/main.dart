@@ -8,6 +8,7 @@ import 'core/l10n/app_locale.dart';
 import 'core/providers/app_providers.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/network_guard.dart';
+import 'core/widgets/services_realtime_bridge.dart';
 import 'features/splash/splash_screen.dart';
 import 'services/api_client.dart';
 import 'services/api_service.dart';
@@ -53,12 +54,14 @@ class AzMaterialApp extends StatelessWidget {
         // NetworkGuard must wrap MaterialApp, not MaterialApp.builder's child — when
         // [child] is null the route (splash) never mounts and only the native blue window shows.
         return NetworkGuard(
-          child: MaterialApp(
+          child: ServicesRealtimeBridge(
+            child: MaterialApp(
             title: appLocale.t('appName'),
             debugShowCheckedModeBanner: false,
             locale: Locale(appLocale.locale),
             theme: AppTheme.materialTheme(),
             home: const SplashScreen(),
+            ),
           ),
         );
       },

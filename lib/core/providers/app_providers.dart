@@ -3,12 +3,15 @@ import 'package:provider/single_child_widget.dart';
 
 import '../../features/auth/auth_controller.dart';
 import '../../features/home/banner_controller.dart';
+import '../../features/home/services_controller.dart';
 import '../../features/leads/lead_controller.dart';
 import '../../features/profile/user_controller.dart';
 import '../../features/wallet/wallet_controller.dart';
+import '../../core/connectivity/app_connectivity.dart';
 import '../../services/api_client.dart';
 import '../../services/api_service.dart';
 import '../../services/banner_service.dart';
+import '../../services/services_service.dart';
 import '../../services/lead_service.dart';
 import '../../services/otp_service.dart';
 import '../../services/payment_service.dart';
@@ -22,6 +25,7 @@ List<SingleChildWidget> createAppProviders([ApiClient? api]) {
   final userService = UserService(client);
   final walletService = WalletService(client);
   return [
+    ChangeNotifierProvider<AppConnectivity>(create: (_) => AppConnectivity()),
     Provider<ApiClient>.value(value: client),
     Provider<UserService>.value(value: userService),
     Provider<OtpService>.value(value: OtpService(client)),
@@ -31,6 +35,7 @@ List<SingleChildWidget> createAppProviders([ApiClient? api]) {
       value: PaymentService(client, walletService),
     ),
     Provider<BannerService>.value(value: BannerService(client)),
+    Provider<ServicesService>.value(value: ServicesService(client)),
     Provider<SplashFlowService>.value(
       value: SplashFlowService(users: userService),
     ),
@@ -60,6 +65,12 @@ List<SingleChildWidget> createAppProviders([ApiClient? api]) {
     ),
     ChangeNotifierProvider<BannerController>(
       create: (ctx) => BannerController(banners: ctx.read<BannerService>()),
+    ),
+    ChangeNotifierProvider<ServicesController>(
+      create: (ctx) => ServicesController(
+        services: ctx.read<ServicesService>(),
+        connectivity: ctx.read<AppConnectivity>(),
+      ),
     ),
   ];
 }

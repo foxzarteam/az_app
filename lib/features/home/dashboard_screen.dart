@@ -10,6 +10,7 @@ import '../../core/utils/page_routes.dart';
 import '../../core/utils/product_share.dart';
 import '../../core/utils/user_prefs_helper.dart';
 import '../../core/widgets/carousel_banner.dart';
+import '../../core/widgets/services_refresh_scroll.dart';
 import '../../core/widgets/common_bottom_nav.dart';
 import '../../core/widgets/common_nav_bar.dart';
 import '../../core/widgets/drawer_menu_item.dart';
@@ -22,6 +23,8 @@ import '../profile/privacy_policy_screen.dart';
 import '../referral/referral_screen.dart';
 import '../wallet/wallet_screen.dart';
 import '../wallet/wallet_controller.dart';
+import 'services_controller.dart';
+import 'widgets/sell_earn_services_grid.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
@@ -55,6 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadWallet();
+      context.read<ServicesController>().onScreenVisible();
     });
   }
 
@@ -485,6 +489,7 @@ class _DashboardBodyState extends State<DashboardBody> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadWallet();
+      context.read<ServicesController>().onScreenVisible();
     });
   }
 
@@ -577,7 +582,7 @@ class _DashboardBodyBuilder extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
       ),
-      child: SingleChildScrollView(
+      child: ServicesRefreshScroll(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,94 +720,8 @@ class _DashboardBodyBuilder extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.account_balance_wallet_rounded, title: 'Personal Loan', subtitle: 'Earn upto 4.00%', iconColor: accentOrange, bottomColor: accentOrange.withValues(alpha: 0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Personal Loan')))),
-            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.home_rounded, title: 'Home Loan', subtitle: 'Earn upto 3.50%', iconColor: primary, bottomColor: accentOrange.withValues(alpha: 0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Home Loan')))),
-            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.business_rounded, title: 'Business Loan', subtitle: 'Earn upto 2.50%', iconColor: const Color(0xFF7C3AED), bottomColor: accentOrange.withValues(alpha: 0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Business Loan')))),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: Padding(padding: const EdgeInsets.only(right: 3), child: _buildServiceCard(icon: Icons.credit_card_rounded, title: 'Credit Card', subtitle: 'Earn upto ₹3000', iconColor: AppTheme.socialMail, bottomColor: accentOrange.withValues(alpha: 0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Credit Card')))),
-            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _buildServiceCard(icon: Icons.shield_rounded, title: 'Insurance', subtitle: 'Earn upto ₹2000', iconColor: AppTheme.success, bottomColor: accentOrange.withValues(alpha: 0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Insurance')))),
-            Expanded(child: Padding(padding: const EdgeInsets.only(left: 3), child: _buildServiceCard(icon: Icons.directions_car_rounded, title: 'Vehicle Loan', subtitle: 'Earn upto 2.00%', iconColor: AppTheme.primaryBlue, bottomColor: accentOrange.withValues(alpha: 0.2), onTap: () => DashboardScreen.showShareForProduct(context, 'Vehicle Loan')))),
-          ],
-        ),
+        SellEarnServicesGrid(primary: primary, accentOrange: accentOrange),
       ],
-    );
-  }
-
-  Widget _buildServiceCard({required IconData icon, required String title, required String subtitle, required Color iconColor, required Color bottomColor, VoidCallback? onTap}) {
-    const double circleRadius = 28.0;
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.topCenter,
-        children: [
-          Container(
-            width: double.infinity,
-            margin: EdgeInsets.only(top: circleRadius),
-            padding: const EdgeInsets.fromLTRB(10, circleRadius + 8, 10, 14),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.overlayDark(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.primaryText),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.accentOrange),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 0,
-            child: Container(
-              width: circleRadius * 2,
-              height: circleRadius * 2,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-                border: Border.all(color: iconColor.withValues(alpha: 0.4), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.overlayDark(0.1),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: iconColor, size: 26),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

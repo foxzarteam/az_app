@@ -22,12 +22,16 @@ class OTPVerificationScreen extends StatefulWidget {
   final String? verificationId; // required for firebasePhone mode
   final bool isResetMPIN;
 
+  /// Optional info when OTP is sent via server fallback (Firebase browser failed).
+  final String? bannerMessageKey;
+
   const OTPVerificationScreen({
     super.key,
     required this.mobileNumber,
     required this.mode,
     this.verificationId,
     this.isResetMPIN = false,
+    this.bannerMessageKey,
   });
 
   @override
@@ -290,6 +294,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (widget.bannerMessageKey != null) ...[
+                          MessageBanner(
+                            message: context.t(widget.bannerMessageKey!),
+                            type: MessageBannerType.success,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                         TextField(
                           controller: _otpController,
                           focusNode: _otpFocusNode,

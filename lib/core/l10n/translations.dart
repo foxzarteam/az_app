@@ -58,6 +58,10 @@ Map<String, Map<String, String>> get appTranslations => {
     'hi':
         'OTP सत्यापन सेटअप समस्या। Firebase Console में ऐप का SHA-1 और SHA-256 जोड़ें, नया google-services.json डाउनलोड कर रीबिल्ड करें। डिफ़ॉल्ट ब्राउज़र Chrome रखकर फिर कोशिश करें।',
   },
+  'msgOtpBackendFallback': {
+    'en': 'Sending OTP via app server. Check OTP on /api/otp/dev if testing.',
+    'hi': 'ऐप सर्वर से OTP भेजा जा रहा है। टेस्ट के लिए /api/otp/dev पर OTP देखें।',
+  },
   'msgNetworkError': {'en': 'Network error. Please try again.', 'hi': 'नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।'},
   'msgInvalidOtp': {'en': 'Invalid OTP. Please try again.', 'hi': 'अमान्य OTP। कृपया पुनः प्रयास करें।'},
   'msgOtpResent': {'en': 'OTP resent successfully!', 'hi': 'OTP सफलतापूर्वक पुनः भेजा गया!'},

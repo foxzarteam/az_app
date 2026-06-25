@@ -1,16 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../config/app_config.dart';
 import '../../core/l10n/app_locale.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/validators.dart';
 import '../../core/widgets/animated_error_banner.dart';
 import '../../services/firebase_bootstrap.dart';
+import '../../services/firebase_phone_auth_helper.dart';
 import '../shell/main_shell_screen.dart';
 import 'mpin_set_screen.dart';
 import 'otp_verification_screen.dart';
@@ -80,12 +83,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
 
       final live = await auth.getLiveFlag();
+      final useFirebase = live && !AppConfig.forceBackendOtp;
 
-      if (live) {
-        await FirebaseBootstrap.ensureInitialized();
-        // LIVE=true: Firebase Phone Auth sends OTP to phone.
-        bool didNavigate = false;
+      if (!useFirebase) {
+        await _sendBackendOtp(auth, mobileNumber);
+        return;
+      }
 
+      await FirebaseBootstrap.ensureInitialized();
+      if (Firebase.apps.isEmpty) {
+        await _sendBackendOtp(auth, mobileNumber);
+        return;
+      }
+
+      // LIVE=true: native SMS when SHA is in Firebase; else browser reCAPTCHA (often fails).
+      var didNavigate = false;
+
+      try {
         await FirebaseAuth.instance.verifyPhoneNumber(
           phoneNumber: '+91$mobileNumber',
           timeout: const Duration(seconds: 60),
@@ -172,19 +186,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
               });
             }
           },
-          verificationFailed: (FirebaseAuthException e) {
+          verificationFailed: (FirebaseAuthException e) async {
             if (didNavigate || !mounted) return;
+            if (isFirebasePhoneSetupError(e)) {
+              didNavigate = true;
+              await _sendBackendOtp(
+                auth,
+                mobileNumber,
+                fallbackNoteKey: 'msgOtpBackendFallback',
+              );
+              return;
+            }
             setState(() {
               _isLoading = false;
-              // Missing SHA / Play Integrity often surfaces as generic or web errors.
-              if (e.code == 'web-context-cancelled' ||
-                  e.code == 'missing-client-identifier' ||
-                  (e.message?.contains('sessionStorage') ?? false) ||
-                  (e.message?.contains('initial state') ?? false)) {
-                _errorMessage = 'msgFirebasePhoneSetup';
-              } else {
-                _errorMessage = 'msgErrorTryAgain';
-              }
+              _errorMessage = 'msgErrorTryAgain';
             });
           },
           codeSent: (verificationId, _) {
@@ -202,27 +217,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
           },
           codeAutoRetrievalTimeout: (_) {},
         );
-      } else {
-        // LIVE=false: create OTP session in DB, user can see OTP at /api/otp/dev.
-        final otpRes = await auth.sendOTP(mobileNumber);
-        if (!otpRes.success) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = otpRes.message ?? 'msgErrorTryAgain';
-          });
+      } catch (e) {
+        if (!mounted || didNavigate) return;
+        final msg = e.toString();
+        if (isFirebasePhoneSetupMessage(msg)) {
+          await _sendBackendOtp(
+            auth,
+            mobileNumber,
+            fallbackNoteKey: 'msgOtpBackendFallback',
+          );
           return;
         }
-
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => OTPVerificationScreen(
-              mobileNumber: mobileNumber,
-              mode: OtpVerifyMode.backendDb,
-              isResetMPIN: widget.isForgotMPIN,
-            ),
-          ),
-        );
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'msgErrorTryAgain';
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -232,6 +241,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
       }
     }
+  }
+
+  /// Server OTP (DB). Works when LIVE=false or Firebase browser verification fails.
+  Future<void> _sendBackendOtp(
+    AuthController auth,
+    String mobileNumber, {
+    String? fallbackNoteKey,
+  }) async {
+    final otpRes = await auth.sendOTP(mobileNumber);
+    if (!mounted) return;
+    if (!otpRes.success) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = otpRes.message ?? 'msgErrorTryAgain';
+      });
+      return;
+    }
+
+    setState(() => _isLoading = false);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => OTPVerificationScreen(
+          mobileNumber: mobileNumber,
+          mode: OtpVerifyMode.backendDb,
+          isResetMPIN: widget.isForgotMPIN,
+          bannerMessageKey: fallbackNoteKey,
+        ),
+      ),
+    );
   }
 
   @override

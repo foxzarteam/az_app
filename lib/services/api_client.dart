@@ -13,7 +13,11 @@ class ApiPostResult {
 
 /// Central HTTP contract. Single implementation: [ApiService].
 abstract class ApiClient {
-  Future<Map<String, dynamic>?> getJson(String path);
+  Future<Map<String, dynamic>?> getJson(
+    String path, {
+    Duration? timeout,
+    int? maxRetries,
+  });
   Future<Map<String, dynamic>?> postJson(String path, Map<String, dynamic> body);
   Future<Map<String, dynamic>?> putJson(String path, Map<String, dynamic> body);
   Future<Map<String, dynamic>?> patchJson(
